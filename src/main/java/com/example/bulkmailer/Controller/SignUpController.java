@@ -23,4 +23,10 @@ public class SignUpController {
         return ResponseEntity.status(HttpStatus.OK).body(registerService.signUp(request));
     }
 
+    @GetMapping("/hello")
+    public String hello()
+    {
+        return "Hello";
+    }
+
 }
