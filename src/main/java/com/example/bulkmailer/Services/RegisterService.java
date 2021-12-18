@@ -1,11 +1,13 @@
 package com.example.bulkmailer.Services;
 
 import com.example.bulkmailer.Entities.AppUser;
+import com.example.bulkmailer.Entities.DTOs.Mail;
 import com.example.bulkmailer.Entities.RegistrationRequest;
 import com.example.bulkmailer.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
@@ -13,30 +15,37 @@ import java.util.regex.Pattern;
 public class RegisterService {
 
     private UserRepository userRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private PasswordEncoder passwordEncoder;
+
     private final String emailRegex="^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[\\a-zA-Z]{2,6}";
+
     private final String passwordRegex="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+    private OtpService otpService;
+
+
+
 
     public String signUp(RegistrationRequest request) {
         log.info("Email - {}",request.getUsername());
-        log.info("Password - {}",request.getPassword());
         log.info("Valid email - {}",email_password_Validator(emailRegex,request.getUsername()));
-        log.info("Valid Password - {}",email_password_Validator(passwordRegex,request.getPassword()));
 
         if(!email_password_Validator(emailRegex,request.getUsername()))
             throw new IllegalStateException("Invalid email");
-        if(!email_password_Validator(passwordRegex,request.getPassword()))
-            throw new IllegalStateException("Invalid Password");
 
         if(userRepository.findByUsername(request.getUsername()).isPresent())
             throw new IllegalStateException("Email already present");
 
-        String encodedPassword= bCryptPasswordEncoder.encode(request.getPassword());
-        AppUser appUser=new AppUser(request.getName(),request.getUsername(),encodedPassword);
+        int otp = otpService.generateOTP(request.getUsername());
+        AppUser appUser=new AppUser(request.getName(),request.getUsername(),null,otp);
+        sendOtp(appUser);
         userRepository.save(appUser);
-        return "works";
+
+        return "success";
     }
 
+    //Method to validate email or password
     public Boolean email_password_Validator(String regex,String value)
     {
         Pattern pattern=Pattern.compile(regex);
@@ -44,4 +53,73 @@ public class RegisterService {
             return false;
         return pattern.matcher(value).matches();
     }
+
+    //Method to generate and send otp
+    public void sendOtp(AppUser appUser)
+    {
+
+//        try {
+        log.info("email - {}",appUser.getUsername());
+            String message = "OTP to verify your account is " + appUser.getOtp();
+            Mail mail = new Mail(appUser.getUsername(), "Verify Your account", message);
+            log.info("Otp sent - {}", appUser.getOtp());
+            otpService.sendMail(mail);
+//        }
+//        catch (NullPointerException n)
+//        {
+//            log.info("Mail - {} {} ",appUser.getUsername(), appUser.getOtp());
+//        }
+    }
+
+    public Boolean verifyAcc(int userOtp,String username)
+    {
+        try {
+            Boolean validOtp;
+            AppUser appUser = userRepository.findByUsername(username).get();
+            if (userOtp >= 0) {
+                int generatedOtp = appUser.getOtp();
+                if (generatedOtp > 0) {
+                    if (userOtp == generatedOtp) {
+                        appUser.setEnabled(true);
+                        userRepository.save(appUser);
+                        validOtp = true;
+                    } else {
+                        validOtp = false;
+                    }
+                } else {
+                    validOtp = false;
+                }
+            } else {
+                validOtp = false;
+            }
+            System.out.println(validOtp);
+            return validOtp;
+        }
+        catch(NullPointerException n)
+        {
+            log.info("UserOtp:"+userOtp);
+            return false;
+        }
+    }
+    public String createPassword(String username,String password)
+    {
+            if(userRepository.findByUsername(username).isEmpty())
+                throw new UsernameNotFoundException("User not found");
+            AppUser appUser = userRepository.findByUsername(username).get();
+
+
+            if (!email_password_Validator(passwordRegex, password))
+            {
+                throw new IllegalStateException("Invalid Password");
+            }
+            if(!appUser.getEnabled())
+            {
+                throw new IllegalStateException("Student not verified through otp");
+            }
+            appUser.setPassword(passwordEncoder.encode(password));
+            appUser.setLocked(false);
+            userRepository.save(appUser);
+            return "User saved";
+    }
+
 }

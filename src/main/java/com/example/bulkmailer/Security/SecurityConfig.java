@@ -4,7 +4,6 @@ import com.example.bulkmailer.JWT.JwtAuthenticationEntryPoint;
 import com.example.bulkmailer.JWT.JwtFilter;
 import com.example.bulkmailer.Services.AppUserService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity security) throws Exception
     {
-        security.cors().and().httpBasic().disable().csrf().disable().authorizeRequests().antMatchers( "/**","/h2-console/**").permitAll().
+        security.cors().and().httpBasic().disable().csrf().disable().authorizeRequests().antMatchers("/signup/**" ,"/authenticate","/refreshToken","/h2-console/**").permitAll().
                 anyRequest().authenticated();
         security.headers().frameOptions().disable();
         security.exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()

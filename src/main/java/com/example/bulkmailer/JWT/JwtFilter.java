@@ -4,6 +4,7 @@ import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.AppUserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,14 +16,16 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 
-@Component@AllArgsConstructor
+@Component@AllArgsConstructor@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
 
     private JwtUtil jwtUtil;
-    private UserRepository userRepository;
     private AppUserService appUserService;
 
     @Override
@@ -41,9 +44,20 @@ public class JwtFilter extends OncePerRequestFilter {
                 System.out.println("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
                 System.out.println("JWT Token has expired");
+                DataInputStream in = new DataInputStream((InputStream)request.getInputStream());
+                String message="JWT Token has expired";
+                response.setContentType("text/plain;charset=UTF-8");
+                response.setContentLength(message.length());
+                response.setStatus(403);
+                PrintWriter out = response.getWriter();
+                out.println(message);
+                in.close();
+                out.close();
+                out.flush();
             }
         } else {
-            logger.warn("JWT Token does not begin with Bearer String");
+
+                logger.warn("JWT Token does not begin with Bearer String");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -61,5 +75,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         chain.doFilter(request, response);
     }
+
 
 }

@@ -2,14 +2,12 @@ package com.example.bulkmailer.Controller;
 
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.JWT.JwtRequest;
-import com.example.bulkmailer.JWT.JwtResponse;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.index.qual.SameLen;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,16 +28,14 @@ import java.util.Map;
 @AllArgsConstructor
 public class JwtAuthenticationController {
 
-    @Autowired
     private AuthenticationManager authenticationManager;
-    @Autowired
+
     private JwtUtil jwtUtil;
 
-    @Autowired
+
     private UserDetailsService userDetailsService;
-    @Autowired
+
     private PasswordEncoder passwordEncoder;
-    @Autowired
     private UserRepository userRepository;
 
     @PostMapping("/authenticate")
@@ -49,10 +46,9 @@ public class JwtAuthenticationController {
             final UserDetails userDetails = userDetailsService
                     .loadUserByUsername(authenticationRequest.getUsername());
 
-            final String access_token = jwtUtil.generateAccessToken(userDetails);
-            final String refresh_token=jwtUtil.generateRefreshToken(userDetails);
-
-            Map<String,String> token=new HashMap<>();
+            final String access_token= jwtUtil.generateAccessToken(userDetails);
+            final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
+            Map<String,String> token = new HashMap<>();
             token.put("access_token",access_token);
             token.put("refresh_token",refresh_token);
             return ResponseEntity.ok(token);
@@ -86,6 +82,20 @@ public class JwtAuthenticationController {
             return "User not found";
         }
     }
+    @PostMapping("/refreshToken")
+    public ResponseEntity<?> refreshtoken(HttpServletRequest request) throws Exception {
+        // From the HttpRequest get the claims
+        DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
+
+        String refreshToken=request.getHeader("refresh_token");
+        UserDetails userDetails=userDetailsService.loadUserByUsername(jwtUtil.getUsernameFromToken(refreshToken));
+
+        String access_token = jwtUtil.generateAccessToken(userDetails);
+        Map<String,String> token = new HashMap<>();
+        token.put("access_token",access_token);
+        return ResponseEntity.ok(token);
+    }
+
 
 
 }

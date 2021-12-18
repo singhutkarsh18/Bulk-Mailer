@@ -12,7 +12,7 @@ import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
 
-@Getter@Setter @NoArgsConstructor @EqualsAndHashCode
+@Getter@Setter @EqualsAndHashCode
 @Entity
 public class AppUser implements UserDetails {
 
@@ -21,14 +21,19 @@ public class AppUser implements UserDetails {
     private String name;
     private String username;
     private String password;
-    private Boolean locked=false;
+    private Boolean locked=true;
     private Boolean enabled=false;
     private String role="USER";
+    private int otp;
 
-    public AppUser(String name, String username, String password) {
+    public AppUser(String name, String username, String password,int otp) {
         this.name = name;
         this.username = username;
         this.password = password;
+        this.otp=otp;
+    }
+
+    public AppUser() {
     }
 
     @Override
@@ -53,7 +58,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !locked;
+        return locked;
     }
 
     @Override

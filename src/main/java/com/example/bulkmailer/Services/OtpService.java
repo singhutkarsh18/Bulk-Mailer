@@ -1,27 +1,27 @@
 package com.example.bulkmailer.Services;
 
-import com.example.bulkmailer.Entities.Mail;
+import com.example.bulkmailer.Entities.DTOs.Mail;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-
-@Service@AllArgsConstructor
+@Service@AllArgsConstructor@Slf4j
 public class OtpService {
 
     @Autowired
     private JavaMailSender javaMailSender;
 
-    public OtpService(JavaMailSender javaMailSender){
-        this.javaMailSender=javaMailSender;
-    }
+
     public void sendMail(Mail mail) {
 
         SimpleMailMessage msg = new SimpleMailMessage();
@@ -29,6 +29,7 @@ public class OtpService {
         msg.setSubject(mail.getSubject());
         msg.setText(mail.getMessage());
         this.javaMailSender.send(msg);
+        log.info("Otp sent - {}", new Date());
     }
     private static final Integer EXPIRE_MINS = 5;
 
