@@ -3,13 +3,19 @@ package com.example.bulkmailer.Services;
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.Mail;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 @Service@AllArgsConstructor@Slf4j
 public class RegisterService {
@@ -24,8 +30,9 @@ public class RegisterService {
 
     private OtpService otpService;
 
+    private UserDetailsService userDetailsService;
 
-
+    private JwtUtil jwtUtil;
 
     public String signUp(RegistrationRequest request) {
         log.info("Email - {}",request.getUsername());
@@ -101,7 +108,7 @@ public class RegisterService {
             return false;
         }
     }
-    public String createPassword(String username,String password)
+    public Map<String,String> createPassword(String username,String password)
     {
             if(userRepository.findByUsername(username).isEmpty())
                 throw new UsernameNotFoundException("User not found");
@@ -119,7 +126,15 @@ public class RegisterService {
             appUser.setPassword(passwordEncoder.encode(password));
             appUser.setLocked(false);
             userRepository.save(appUser);
-            return "User saved";
+        final UserDetails userDetails = userDetailsService
+                .loadUserByUsername(appUser.getUsername());
+
+        final String access_token= jwtUtil.generateAccessToken(userDetails);
+        final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
+        Map<String,String> token = new HashMap<>();
+        token.put("access_token",access_token);
+        token.put("refresh_token",refresh_token);
+        return token;
     }
 
 }
