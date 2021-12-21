@@ -17,7 +17,7 @@ public class JwtUtil implements Serializable {
     public static final long ACCESS_TOKEN_EXPIRY = 5* 60 * 1000;
     public static final long REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
-//    @Value("${jwt.secret}")
+
     private final String secret="BulkMailer";
 
     public String getUsernameFromToken(String token) {
