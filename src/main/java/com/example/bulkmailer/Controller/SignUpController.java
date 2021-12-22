@@ -51,7 +51,7 @@ public class SignUpController {
         catch ( UsernameNotFoundException e)
         {
             log.warn(e.getLocalizedMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Error");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getLocalizedMessage());
         }
     }
     @PostMapping("/setPassword")

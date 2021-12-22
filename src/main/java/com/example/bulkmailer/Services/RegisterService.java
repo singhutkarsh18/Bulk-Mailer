@@ -86,6 +86,8 @@ public class RegisterService {
 
     public Boolean verifyAcc(int userOtp,String username)
     {
+        if(!userRepository.findByUsername(username).isPresent())
+            throw new UsernameNotFoundException("user not found");
         try {
             Boolean validOtp;
             AppUser appUser = userRepository.findByUsername(username).get();
