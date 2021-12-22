@@ -31,6 +31,28 @@ public class OtpService {
         this.javaMailSender.send(msg);
         log.info("Otp sent - {}", new Date());
     }
+
+//    public void sendMail(String subject,String recipient,String body) {
+//        Email from = new Email("test@example.com");
+//        String subject1 = subject;
+//        Email to = new Email(recipient);
+//        Content content = new Content("text/plain", body);
+//        Mail mail = new Mail(from, subject, to, content);
+//
+//        Request request = new Request();
+//        try {
+//            request.setMethod(Method.POST);
+//            request.setEndpoint("mail/send");
+//            request.setBody(mail.build());
+//            Response response = this.sendGrid.api(request);
+//            sendGrid.api(request);
+//            log.info("Otp sent - {}", new Date());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+
     private static final Integer EXPIRE_MINS = 5;
 
     private LoadingCache<String, Integer> otpCache;

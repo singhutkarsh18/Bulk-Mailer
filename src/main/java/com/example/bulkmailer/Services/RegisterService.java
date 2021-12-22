@@ -61,22 +61,28 @@ public class RegisterService {
         return pattern.matcher(value).matches();
     }
 
-    //Method to generate and send otp
+//    Method to generate and send otp
     public void sendOtp(AppUser appUser)
     {
 
-//        try {
+        try {
         log.info("email - {}",appUser.getUsername());
             String message = "OTP to verify your account is " + appUser.getOtp();
             Mail mail = new Mail(appUser.getUsername(), "Verify Your account", message);
             log.info("Otp sent - {}", appUser.getOtp());
             otpService.sendMail(mail);
-//        }
-//        catch (NullPointerException n)
-//        {
-//            log.info("Mail - {} {} ",appUser.getUsername(), appUser.getOtp());
-//        }
+        }
+        catch (NullPointerException n)
+        {
+            log.info("Mail - {} {} ",appUser.getUsername(), appUser.getOtp());
+        }
     }
+//    public void sendOtp(AppUser appUser)
+//    {
+//        String message = "OTP to verify your account is " + appUser.getOtp();
+//        otpService.sendMail("Verify Your account", appUser.getUsername(), message);
+//    }
+
 
     public Boolean verifyAcc(int userOtp,String username)
     {
