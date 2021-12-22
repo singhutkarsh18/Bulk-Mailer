@@ -7,7 +7,6 @@ import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 @Service@AllArgsConstructor@Slf4j
 public class RegisterService {
@@ -49,7 +49,7 @@ public class RegisterService {
         sendOtp(appUser);
         userRepository.save(appUser);
 
-        return "success";
+        return "otp sent";
     }
 
     //Method to validate email or password
@@ -137,4 +137,33 @@ public class RegisterService {
         return token;
     }
 
+    public String resendOtp(String username) {
+        if(userRepository.findByUsername(username).isEmpty())
+            throw new UsernameNotFoundException("User not found");
+
+         AppUser appUser = userRepository.findByUsername(username).get();
+        int otp = otpService.generateOTP(username);
+        appUser.setOtp(otp);
+        sendOtp(appUser);
+        userRepository.save(appUser);
+        return "otp sent";
+    }
+
+    public String forgotPassword(String username) {
+        if(!email_password_Validator(emailRegex,username))
+            throw new IllegalStateException("invalid username");
+        if(!userRepository.findByUsername(username).isPresent())
+            throw new UsernameNotFoundException("User not found");
+        AppUser appUser=userRepository.findByUsername(username).get();
+        if(!appUser.getEnabled())
+            throw new IllegalStateException("User not enabled");
+        if (appUser.getLocked())
+            throw new IllegalStateException("Password not set");
+        int otp = otpService.generateOTP(username);
+        appUser.setOtp(otp);
+        appUser.setEnabled(false);
+        sendOtp(appUser);
+        userRepository.save(appUser);
+        return "otp sent";
+    }
 }

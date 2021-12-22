@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController @AllArgsConstructor
 @RequestMapping("/signup")@Slf4j
 @CrossOrigin("*")
@@ -24,7 +26,7 @@ public class SignUpController {
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request )
     {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(registerService.signUp(request));
+            return ResponseEntity.status(HttpStatus.CREATED).body(registerService.signUp(request));
         }
         catch (IllegalStateException e)
         {
@@ -65,6 +67,33 @@ public class SignUpController {
         catch (IllegalStateException e2)
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e2.getLocalizedMessage());
+        }
+    }
+    @PostMapping("/resend")
+    public ResponseEntity<?> resend(@RequestBody Map<String,String> username)
+    {
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(registerService.resendOtp(username.get("username")));
+        }
+        catch (UsernameNotFoundException e)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getLocalizedMessage());
+        }
+    }
+    @PostMapping("/forgot")
+    public ResponseEntity<?> forgot(@RequestBody Map<String,String> username)
+    {
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(registerService.forgotPassword(username.get("username")));
+        }
+        catch (UsernameNotFoundException e)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getLocalizedMessage());
+        }
+        catch (IllegalStateException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+
         }
     }
     @GetMapping("/hello")
