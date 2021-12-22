@@ -19,7 +19,6 @@ import java.util.Map;
 @CrossOrigin("*")
 public class SignUpController {
 
-    private AppUserService appUserService;
     private RegisterService registerService;
 
     @PostMapping("/register")
