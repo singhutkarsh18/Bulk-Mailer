@@ -1,6 +1,5 @@
 package com.example.bulkmailer.JWT;
 
-import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.AppUserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;

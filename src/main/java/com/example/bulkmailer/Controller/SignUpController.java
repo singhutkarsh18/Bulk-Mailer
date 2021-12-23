@@ -31,7 +31,6 @@ public class SignUpController {
         {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getLocalizedMessage());
         }
-
     }
     @PostMapping("/verifyOtp")
     public ResponseEntity<?> verifyOtp(@RequestBody OTP otp)
@@ -40,12 +39,12 @@ public class SignUpController {
             if(registerService.verifyAcc(otp.getUserOtp(), otp.getUsername()))
                 return ResponseEntity.status(HttpStatus.ACCEPTED).body("User verified");
             else
-                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Incorrect OTP");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect OTP");
         }
         catch (NullPointerException n)
         {
             log.warn(n.getLocalizedMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Null");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Null");
         }
         catch ( UsernameNotFoundException e)
         {
@@ -61,7 +60,7 @@ public class SignUpController {
         }
         catch(UsernameNotFoundException e1)
         {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e1.getLocalizedMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
         }
         catch (IllegalStateException e2)
         {
@@ -91,7 +90,7 @@ public class SignUpController {
         }
         catch (IllegalStateException e1)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e1.getLocalizedMessage());
 
         }
     }

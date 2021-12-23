@@ -53,9 +53,12 @@ public class JwtAuthenticationController {
             token.put("refresh_token",refresh_token);
             return ResponseEntity.ok(token);
         }
-        else
+        else if(auth.equals("User not found"))
         {
-            return new ResponseEntity<>(auth, HttpStatus.OK);
+            return new ResponseEntity<>(auth, HttpStatus.NOT_FOUND);
+        }
+        else{
+            return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
         }
     }
 
