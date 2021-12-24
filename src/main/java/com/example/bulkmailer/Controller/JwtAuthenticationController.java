@@ -5,6 +5,7 @@ import com.example.bulkmailer.JWT.JwtRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,16 +88,26 @@ public class JwtAuthenticationController {
     }
     @PostMapping("/refreshToken")
     public ResponseEntity<?> refreshtoken(HttpServletRequest request) throws Exception {
-        DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
-        String refreshToken=request.getHeader("refresh_token");
-        if(!userRepository.findByUsername(jwtUtil.getUsernameFromToken(refreshToken)).isPresent())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not present");
-        UserDetails userDetails=userDetailsService.loadUserByUsername(jwtUtil.getUsernameFromToken(refreshToken));
+        try {
+            DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
+            String refreshToken = request.getHeader("refresh_token");
+            if (!userRepository.findByUsername(jwtUtil.getUsernameFromToken(refreshToken)).isPresent())
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not present");
+            UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.getUsernameFromToken(refreshToken));
 
-        String access_token = jwtUtil.generateAccessToken(userDetails);
-        Map<String,String> token = new HashMap<>();
-        token.put("access_token",access_token);
-        return ResponseEntity.ok(token);
+            String access_token = jwtUtil.generateAccessToken(userDetails);
+            Map<String, String> token = new HashMap<>();
+            token.put("access_token", access_token);
+            return ResponseEntity.ok(token);
+        }
+        catch(ExpiredJwtException e1)
+        {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e1.getLocalizedMessage());
+        }
+        catch (SignatureException e2)
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e2.getLocalizedMessage());
+        }
     }
 
 

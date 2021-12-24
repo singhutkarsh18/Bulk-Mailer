@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Map;
 
 @RestController @AllArgsConstructor
@@ -29,7 +30,15 @@ public class SignUpController {
         }
         catch (IllegalStateException e)
         {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getLocalizedMessage());
+            if(e.getLocalizedMessage().equals("Invalid email"))
+                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getLocalizedMessage());
+            else if(e.getLocalizedMessage().equals("not verified"))
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getLocalizedMessage());
+            else if(e.getLocalizedMessage().equals("password not set"))
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e.getLocalizedMessage());
+            else
+                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e.getLocalizedMessage());
+
         }
     }
     @PostMapping("/verifyOtp")
@@ -66,6 +75,10 @@ public class SignUpController {
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e2.getLocalizedMessage());
         }
+        catch (EntityNotFoundException e3)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e3.getLocalizedMessage());
+        }
     }
     @PostMapping("/resend")
     public ResponseEntity<?> resend(@RequestBody Map<String,String> username)
@@ -90,7 +103,14 @@ public class SignUpController {
         }
         catch (IllegalStateException e1)
         {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e1.getLocalizedMessage());
+            if(e1.getLocalizedMessage().equals("Invalid email"))
+                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e1.getLocalizedMessage());
+            else if(e1.getLocalizedMessage().equals("not verified"))
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e1.getLocalizedMessage());
+            else if(e1.getLocalizedMessage().equals("password not set"))
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e1.getLocalizedMessage());
+            else
+                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
 
         }
     }

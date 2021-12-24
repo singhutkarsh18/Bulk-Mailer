@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -41,9 +42,16 @@ public class RegisterService {
         if(!email_password_Validator(emailRegex,request.getUsername()))
             throw new IllegalStateException("Invalid email");
 
-        if(userRepository.findByUsername(request.getUsername()).isPresent())
+        if(userRepository.findByUsername(request.getUsername()).isPresent()&&
+                userRepository.findByUsername((request.getUsername())).get().getEnabled()&&
+                !userRepository.findByUsername((request.getUsername())).get().getLocked())
             throw new IllegalStateException("Email already present");
-
+        if(userRepository.findByUsername(request.getUsername()).isPresent()&&
+                !userRepository.findByUsername((request.getUsername())).get().getEnabled()&& userRepository.findByUsername((request.getUsername())).get().getLocked())
+            throw new IllegalStateException("not verified");
+        if(userRepository.findByUsername(request.getUsername()).isPresent()&&
+                userRepository.findByUsername((request.getUsername())).get().getEnabled()&&userRepository.findByUsername((request.getUsername())).get().getLocked())
+            throw new IllegalStateException("password not set");
         int otp = otpService.generateOTP(request.getUsername());
         AppUser appUser=new AppUser(request.getName(),request.getUsername(),null,otp);
         sendOtp(appUser);
@@ -129,7 +137,7 @@ public class RegisterService {
             }
             if(!appUser.getEnabled())
             {
-                throw new IllegalStateException("Student not verified through otp");
+                throw new EntityNotFoundException("Student not verified through otp");
             }
             appUser.setPassword(passwordEncoder.encode(password));
             appUser.setLocked(false);
@@ -159,14 +167,14 @@ public class RegisterService {
 
     public String forgotPassword(String username) {
         if(!email_password_Validator(emailRegex,username))
-            throw new IllegalStateException("invalid username");
+            throw new IllegalStateException("Invalid email");
         if(!userRepository.findByUsername(username).isPresent())
             throw new UsernameNotFoundException("User not found");
         AppUser appUser=userRepository.findByUsername(username).get();
         if(!appUser.getEnabled())
-            throw new IllegalStateException("User not enabled");
+            throw new IllegalStateException("not verified");
         if (appUser.getLocked())
-            throw new IllegalStateException("Password not set");
+            throw new IllegalStateException("password not set");
         int otp = otpService.generateOTP(username);
         appUser.setOtp(otp);
         appUser.setEnabled(false);
