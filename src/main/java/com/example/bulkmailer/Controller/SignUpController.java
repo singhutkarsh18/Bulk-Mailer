@@ -3,7 +3,6 @@ package com.example.bulkmailer.Controller;
 import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
-import com.example.bulkmailer.Services.AppUserService;
 import com.example.bulkmailer.Services.RegisterService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,7 +110,6 @@ public class SignUpController {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e1.getLocalizedMessage());
             else
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
-
         }
     }
     @GetMapping("/hello")
