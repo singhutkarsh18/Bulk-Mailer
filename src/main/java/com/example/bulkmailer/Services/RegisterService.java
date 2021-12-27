@@ -140,6 +140,8 @@ public class RegisterService {
             {
                 throw new EntityNotFoundException("Student not verified through otp");
             }
+            if(passwordEncoder.matches(password,appUser.getPassword()))
+                throw new UnsupportedOperationException("new password same as old password");
             appUser.setPassword(passwordEncoder.encode(password));
             appUser.setLocked(false);
             userRepository.save(appUser);
