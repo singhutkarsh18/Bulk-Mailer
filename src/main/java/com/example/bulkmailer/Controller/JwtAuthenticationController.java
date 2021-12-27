@@ -4,6 +4,7 @@ import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.JWT.JwtRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
+import com.example.bulkmailer.Services.RegisterService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.impl.DefaultClaims;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,54 +40,64 @@ public class JwtAuthenticationController {
 
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
+    private RegisterService registerService;
 
+//    @PostMapping("/authenticate")
+//    public ResponseEntity<?> createStudentAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
+//
+//        String auth =registerService.authenticateStudent(authenticationRequest.getUsername(), authenticationRequest.getPassword());
+//        if(auth.equals("true")) {
+//            final UserDetails userDetails = userDetailsService
+//                    .loadUserByUsername(authenticationRequest.getUsername());
+//
+//            final String access_token= jwtUtil.generateAccessToken(userDetails);
+//            final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
+//            Map<String,String> token = new HashMap<>();
+//            token.put("access_token",access_token);
+//            token.put("refresh_token",refresh_token);
+//            return ResponseEntity.ok(token);
+//        }
+//        else if(auth.equals("User not found"))
+//        {
+//            return new ResponseEntity<>(auth, HttpStatus.NOT_FOUND);
+//        }
+//        else{
+//            return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
+//        }
+//    }
     @PostMapping("/authenticate")
     public ResponseEntity<?> createStudentAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
 
-        String auth =authenticateStudent(authenticationRequest.getUsername(), authenticationRequest.getPassword());
-        if(auth.equals("true")) {
-            final UserDetails userDetails = userDetailsService
-                    .loadUserByUsername(authenticationRequest.getUsername());
-
-            final String access_token= jwtUtil.generateAccessToken(userDetails);
-            final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
-            Map<String,String> token = new HashMap<>();
-            token.put("access_token",access_token);
-            token.put("refresh_token",refresh_token);
-            return ResponseEntity.ok(token);
-        }
-        else if(auth.equals("User not found"))
-        {
-            return new ResponseEntity<>(auth, HttpStatus.NOT_FOUND);
-        }
-        else{
-            return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    private String authenticateStudent(String username, String password)  {
-
         try {
-            AppUser appUser = userRepository.findByUsername(username).get();
-            if (passwordEncoder.matches(password, appUser.getPassword())) {
-                return "true";
-            } else {
-                System.out.println(username);
-                System.out.println(passwordEncoder.matches(password, appUser.getPassword()));
-                return "false";
-            }
+            boolean auth = registerService.authenticateStudent(authenticationRequest.getUsername(), authenticationRequest.getPassword());
+
+                final UserDetails userDetails = userDetailsService
+                        .loadUserByUsername(authenticationRequest.getUsername());
+
+                final String access_token = jwtUtil.generateAccessToken(userDetails);
+                final String refresh_token = jwtUtil.generateRefreshToken(userDetails);
+                Map<String, String> token = new HashMap<>();
+                token.put("access_token", access_token);
+                token.put("refresh_token", refresh_token);
+                return ResponseEntity.ok(token);
+
         }
-        catch(ExpiredJwtException e1)
+        catch (UsernameNotFoundException e1)
         {
-            log.info(e1.getLocalizedMessage());
-            return "JWT token has expired";
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
         }
-        catch (Exception e)
+        catch (IllegalStateException e2)
         {
-            System.out.println(e.getLocalizedMessage());
-            return "User not found";
+            if(e2.getLocalizedMessage().equals("not verified"))
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e2.getLocalizedMessage());
+            else if(e2.getLocalizedMessage().equals("password not set"))
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e2.getLocalizedMessage());
+            else
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e2.getLocalizedMessage());
         }
     }
+
+
     @PostMapping("/refreshToken")
     public ResponseEntity<?> refreshtoken(HttpServletRequest request) throws Exception {
         try {

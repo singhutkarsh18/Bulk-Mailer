@@ -5,6 +5,7 @@ import com.example.bulkmailer.Entities.DTOs.Mail;
 import com.example.bulkmailer.Entities.RegistrationRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -181,5 +182,42 @@ public class RegisterService {
         sendOtp(appUser);
         userRepository.save(appUser);
         return "otp sent";
+    }
+//    public String authenticateStudent(String username, String password)  {
+//
+//        try {
+//            if(!userRepository.findByUsername(username).isPresent())
+//                throw new UsernameNotFoundException("User not found");
+//            AppUser appUser = userRepository.findByUsername(username).get();
+//            if (passwordEncoder.matches(password, appUser.getPassword())) {
+//                return "true";
+//            } else {
+//                System.out.println(username);
+//                System.out.println(passwordEncoder.matches(password, appUser.getPassword()));
+//                return "false";
+//            }
+//        }
+//        catch(ExpiredJwtException e1)
+//        {
+//            log.info(e1.getLocalizedMessage());
+//            return "JWT token has expired";
+//        }
+//        catch (UsernameNotFoundException e)
+//        {
+//            System.out.println(e.getLocalizedMessage());
+//            return "User not found";
+//        }
+//    }
+    public boolean authenticateStudent(String username, String password)  {
+        if(!userRepository.findByUsername(username).isPresent())
+            throw new UsernameNotFoundException("User Not present");
+        AppUser appUser=userRepository.findByUsername(username).get();
+        if (!appUser.getEnabled())
+            throw new IllegalStateException("not verified");
+        if (appUser.getLocked())
+            throw new IllegalStateException("password not set");
+        if (!passwordEncoder.matches(password, appUser.getPassword()))
+            throw new IllegalStateException("incorrect password");
+        return true;
     }
 }
