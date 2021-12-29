@@ -1,6 +1,5 @@
 package com.example.bulkmailer.Controller;
 
-import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.JWT.JwtRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
@@ -12,11 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,14 +28,12 @@ import java.util.Map;
 @AllArgsConstructor
 public class JwtAuthenticationController {
 
-    private AuthenticationManager authenticationManager;
 
     private JwtUtil jwtUtil;
 
 
     private UserDetailsService userDetailsService;
 
-    private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
     private RegisterService registerService;
 
@@ -99,7 +94,7 @@ public class JwtAuthenticationController {
 
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshtoken(HttpServletRequest request) throws Exception {
+    public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
         try {
             DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
             String refreshToken = request.getHeader("refresh_token");

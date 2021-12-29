@@ -78,6 +78,10 @@ public class SignUpController {
         {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e3.getLocalizedMessage());
         }
+        catch (UnsupportedOperationException e4)
+        {
+            return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e4.getLocalizedMessage());
+        }
     }
     @PostMapping("/resend")
     public ResponseEntity<?> resend(@RequestBody Map<String,String> username)

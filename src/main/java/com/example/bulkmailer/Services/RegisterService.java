@@ -5,7 +5,6 @@ import com.example.bulkmailer.Entities.DTOs.Mail;
 import com.example.bulkmailer.Entities.RegistrationRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 @Service@AllArgsConstructor@Slf4j
 public class RegisterService {
@@ -140,6 +138,8 @@ public class RegisterService {
             {
                 throw new EntityNotFoundException("Student not verified through otp");
             }
+            if(passwordEncoder.matches(password,appUser.getPassword()))
+                throw new UnsupportedOperationException("new password same as old password");
             appUser.setPassword(passwordEncoder.encode(password));
             appUser.setLocked(false);
             userRepository.save(appUser);
