@@ -1,6 +1,7 @@
 package com.example.bulkmailer.Controller;
 
 import com.example.bulkmailer.Entities.AppUser;
+import com.example.bulkmailer.Entities.DTOs.GoogleToken;
 import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
@@ -26,7 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController @AllArgsConstructor
-@RequestMapping("/signup")@Slf4j
+    @RequestMapping("/signup")@Slf4j
 @CrossOrigin("*")
 public class SignUpController {
 
@@ -129,13 +130,13 @@ public class SignUpController {
         }
     }
     @PostMapping("/google")
-    public ResponseEntity<?> googleSignIn(@RequestBody Map<String,String> Token) throws GeneralSecurityException, IOException {
+    public ResponseEntity<?> googleSignIn(@RequestBody GoogleToken token) throws GeneralSecurityException, IOException {
         String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(CLIENT_ID))
                 .build();
 
-        String idTokenString=Token.get("token");
+        String idTokenString=token.getToken();
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             Payload payload = idToken.getPayload();
