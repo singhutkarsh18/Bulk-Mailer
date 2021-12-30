@@ -1,5 +1,6 @@
 package com.example.bulkmailer.Services;
 
+import com.example.bulkmailer.Entities.DTOs.Recipients;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,9 +14,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service @Slf4j @AllArgsConstructor
 public class BulkMailService {
@@ -24,20 +26,19 @@ public class BulkMailService {
 
     private MailService mailService;
     @Async("threadPoolTaskExecutor")
-    public void sendBulk(List<String> recipeint) {
+    public void sendBulk(Recipients recipients) {
 
         try {
 
-//            Iterator itr = mail.getRecipient().iterator();
-            Iterator itr = recipeint.iterator();
+            Iterator itr = removeDuplicates(recipients.getEmails()).iterator();
             Long start = System.currentTimeMillis();
             log.info("StartTime-{}", start);
-            LocalDateTime l=LocalDateTime.now();
 
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true);
             helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
-            helper.setText("Async message"+l.getSecond(), true);
+            helper.setText(recipients.getBody(), true);
+            helper.setSubject(recipients.getSubject());
             helper.addAttachment("image.jpg", new File("C:\\Users\\utkar\\Desktop\\image.jpg"));
             while(itr.hasNext())
             {
@@ -58,6 +59,14 @@ public class BulkMailService {
             log.error(e2.toString());
         }
 //        return (end-start);
+    }
+    public List<String> removeDuplicates(List<String> emails)
+    {
+        Set<String> s = new LinkedHashSet<>();
+        s.addAll(emails);
+        emails.clear();
+        emails.addAll(s);
+        return emails;
     }
 
 }
