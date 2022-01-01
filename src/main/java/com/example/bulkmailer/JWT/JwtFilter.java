@@ -48,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 String message="JWT Token has expired";
                 response.setContentType("text/plain;charset=UTF-8");
                 response.setContentLength(message.length());
-                response.setStatus(403);
+                response.setStatus(410);
                 PrintWriter out = response.getWriter();
                 out.println(message);
                 in.close();

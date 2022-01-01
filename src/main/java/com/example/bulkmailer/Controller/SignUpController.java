@@ -5,6 +5,7 @@ import com.example.bulkmailer.Entities.DTOs.GoogleRequest;
 import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.RegisterService;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class SignUpController {
 
     private RegisterService registerService;
     private UserRepository userRepository;
+    private GroupRepo groupRepo;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request )
@@ -156,6 +158,31 @@ public class SignUpController {
     public String hello()
     {
         return "Hello APi";
+    }
+    @GetMapping("/allUsers")
+    public ResponseEntity<?> allUsers()
+    {
+        return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll());
+    }
+    @GetMapping("/allGroups")
+    public ResponseEntity<?> allGroups()
+    {
+        return ResponseEntity.status(HttpStatus.OK).body(groupRepo.findAll());
+    }
+    @DeleteMapping("/deleteGroups/{groupId}")
+    public ResponseEntity<?> deleteGroup(@PathVariable Long groupId)
+    {   groupRepo.deleteById(groupId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @DeleteMapping("/deleteUser/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId)
+    {   userRepository.deleteById(userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @GetMapping("/getAllGroups/{userId}")
+    public ResponseEntity<?> getAllGroups(@PathVariable Long userId)
+    {   AppUser appUser =userRepository.findById(userId).get();
+        return ResponseEntity.status(HttpStatus.OK).body(appUser.getGroups());
     }
 
 }
