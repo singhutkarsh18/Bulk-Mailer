@@ -91,6 +91,23 @@ public class MailerController {
             return new ResponseEntity<>("Image is not uploaded", HttpStatus.BAD_REQUEST);
         }
     }
+    @PostMapping("/uploadTemplate")
+    public ResponseEntity<?> uploadTemplate(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("fileName") String name) {
+        try {
+            String imageDirectory ="./src/main/resources/templates";
+            makeDirectoryIfNotExist(imageDirectory);
+            String[] fileFrags = file.getOriginalFilename().split("\\.");
+            String extension = fileFrags[fileFrags.length-1];
+            Path fileNamePath = Paths.get(imageDirectory,
+                    name.concat(".").concat(extension));
+            System.out.println(fileNamePath);
+            Files.write(fileNamePath, file.getBytes());
+            return new ResponseEntity<>("Template uploaded", HttpStatus.CREATED);
+        } catch (Exception ex) {
+            return new ResponseEntity<>("Template is not uploaded", HttpStatus.BAD_REQUEST);
+        }
+    }
     private void makeDirectoryIfNotExist(String imageDirectory) {
         File directory = new File(imageDirectory);
         if (!directory.exists()) {
