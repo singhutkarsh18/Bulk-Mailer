@@ -10,6 +10,7 @@ import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.RegisterService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,7 +20,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.Map;
 
 @RestController @AllArgsConstructor
-    @RequestMapping("/signup")@Slf4j
+@RequestMapping("/signup")@Slf4j
 @CrossOrigin("*")
 public class SignUpController {
 
