@@ -9,6 +9,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
 @Repository
-public interface GroupRepo extends JpaRepository<Groups,Long> {
+public interface GroupRepo extends JpaRepository<Groups,String> {
     Groups findByName(String name);
 }

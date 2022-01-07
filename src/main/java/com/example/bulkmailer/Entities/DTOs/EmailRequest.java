@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class EmailRequest {
-    private Long groupId;
+    private String groupId;
     private String subject;
     private String body;
     private String attachment;

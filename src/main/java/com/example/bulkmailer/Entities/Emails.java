@@ -17,7 +17,7 @@ public class Emails {
     private Long id;
     private String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id",referencedColumnName = "id")
     private Groups groups;
 }

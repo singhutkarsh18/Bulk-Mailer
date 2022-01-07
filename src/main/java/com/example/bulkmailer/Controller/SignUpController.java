@@ -171,7 +171,7 @@ public class SignUpController {
         return ResponseEntity.status(HttpStatus.OK).body(groupRepo.findAll());
     }
     @DeleteMapping("/deleteGroups/{groupId}")
-    public ResponseEntity<?> deleteGroup(@PathVariable Long groupId)
+    public ResponseEntity<?> deleteGroup(@PathVariable String groupId)
     {   groupRepo.deleteById(groupId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

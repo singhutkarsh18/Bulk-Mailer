@@ -9,7 +9,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class TemplateModel {
 
-    private long groupId;
+    private String groupId;
     private String subject;
     private Map<String, String> model;
     private String attachment;

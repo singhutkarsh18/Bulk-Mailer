@@ -49,7 +49,7 @@ public class GroupsController {
         }
     }
     @GetMapping("/getEmails/{groupId}")
-    public ResponseEntity<?> getEmails(@PathVariable Long groupId)
+    public ResponseEntity<?> getEmails(@PathVariable String groupId)
     {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.getGroupEmails(groupId));
@@ -60,7 +60,7 @@ public class GroupsController {
         }
     }
     @DeleteMapping("/deleteGroup/{groupId}")
-    public ResponseEntity<?> deleteGroups(@PathVariable Long groupId)
+    public ResponseEntity<?> deleteGroups(@PathVariable String groupId)
     {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.deleteGroup(groupId));
