@@ -33,6 +33,10 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
     private Set<Groups> groups=new HashSet<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
+    private Set<PreviousMail> previousMails = new HashSet<>();
+
     public AppUser(String name, String username, String password,int otp) {
         this.name = name;
         this.username = username;

@@ -18,9 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.NoSuchElementException;
 
 @Slf4j@AllArgsConstructor
 @RestController@CrossOrigin("*")
@@ -46,8 +49,11 @@ public class MailerController {
         try{
             return ResponseEntity.status(HttpStatus.OK).body(bulkMailService.sendBulkMail(emailRequest));
         }
-        catch (Exception e)
+        catch (NoSuchElementException e)
         {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
 
@@ -67,6 +73,10 @@ public class MailerController {
         try{
             bulkMailService.sendEmailTemplates(templateModel);
             return ResponseEntity.status(HttpStatus.OK).body("Mail sent");
+        }
+        catch (NoSuchElementException e)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
         catch (MessagingException | TemplateException | IOException e) {
             e.printStackTrace();

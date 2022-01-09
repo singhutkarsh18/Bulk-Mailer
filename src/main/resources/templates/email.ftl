@@ -29,7 +29,7 @@
 <#--            <p>Dear ${name},</p>-->
             <p>Hey,</p>
             <p>${content}</p>
-            <p>Sending Email using Spring Boot and Apache Freemarker</p>
+            <p>Sending Email using Spring Boot</p>
             <#--<p>CLick here to verify your email <b>${token}</b></p>-->
             <p>Thanks</p>
         </td>

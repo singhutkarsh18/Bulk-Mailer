@@ -17,9 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.file.AccessDeniedException;
 
 @Component@AllArgsConstructor@Slf4j
 public class JwtFilter extends OncePerRequestFilter {

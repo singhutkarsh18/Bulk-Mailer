@@ -1,12 +1,16 @@
 package com.example.bulkmailer.Services;
 
+import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
 import com.example.bulkmailer.Entities.DTOs.Recipients;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.DTOs.MailModel;
+import com.example.bulkmailer.Entities.PreviousMail;
 import com.example.bulkmailer.Repository.GroupRepo;
+import com.example.bulkmailer.Repository.PreviousMailRepo;
+import com.example.bulkmailer.Repository.UserRepository;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -18,21 +22,22 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service @Slf4j @AllArgsConstructor
 public class BulkMailService {
@@ -47,8 +52,12 @@ public class BulkMailService {
 
     private GroupRepo groupRepo;
 
+    private PreviousMailRepo previousMailRepo;
+
+    private UserRepository userRepository;
+
     @Async("threadPoolTaskExecutor")
-    public void sendBulk(Recipients recipients) {
+    public void sendBulk(Recipients recipients){
 
         try {
 
@@ -85,6 +94,8 @@ public class BulkMailService {
     @Async("threadPoolTaskExecutor")
     public String sendBulkMail(EmailRequest emailRequest) throws MessagingException,UnsupportedEncodingException {
 
+            if(groupRepo.findById(emailRequest.getGroupId()).isEmpty())
+                throw new NoSuchElementException("Group not found");
             Groups groups = groupRepo.findById(emailRequest.getGroupId()).get();
             Iterator itr = groups.getEmails().iterator();
             Long start = System.currentTimeMillis();
@@ -136,7 +147,7 @@ public class BulkMailService {
         mimeMessageHelper.setTo(mailModel.getTo());
         mimeMessageHelper.setText(html, true);
         mimeMessageHelper.setSubject(mailModel.getSubject());
-        mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "SI mailer");
+        mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
         FileSystemResource res = new FileSystemResource(new File("./src/main/resources/uploads/silogo.png"));
         mimeMessageHelper.addInline("image", res);
 
@@ -151,7 +162,8 @@ public class BulkMailService {
     public String sendEmailTemplates(TemplateModel templateModel) throws MessagingException, IOException, TemplateException {
         long start=System.currentTimeMillis();
 
-
+        if(groupRepo.findById(templateModel.getGroupId()).isEmpty())
+            throw new NoSuchElementException("Group not found");
         Groups groups = groupRepo.findById(templateModel.getGroupId()).get();
         Iterator itr = groups.getEmails().iterator();
 
@@ -173,8 +185,45 @@ public class BulkMailService {
         if(templateModel.getAttachment()!=null)
             mimeMessageHelper.addAttachment(templateModel.getAttachment(), new File("./src/main/resources/uploads/"+templateModel.getAttachment()));
         mailSender.send(message);
+        addToHistory(message.getSubject(), getTextFromMessage(message),groups.getName(),templateModel.getAttachment());
         long end=System.currentTimeMillis();
         log.info("Time -{}",end-start);
         return "mail sent";
     }
+    public void addToHistory(String subject, String body, String groupName, String attachmentName)
+    {
+        UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username=userDetails.getUsername();
+        previousMailRepo.save(new PreviousMail(null,subject,body,groupName,attachmentName,userRepository.findByUsername(username).get()));
+
+    }
+    private String getTextFromMessage(Message message) throws MessagingException, IOException {
+        String result = "";
+        if (message.isMimeType("text/plain")) {
+            result = message.getContent().toString();
+        } else if (message.isMimeType("multipart/*")) {
+            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+            result = getTextFromMimeMultipart(mimeMultipart);
+        }
+        return result;
+    }
+    private String getTextFromMimeMultipart(
+            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
+        String result = "";
+        int count = mimeMultipart.getCount();
+        for (int i = 0; i < count; i++) {
+            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/plain")) {
+                result = result + "\n" + bodyPart.getContent();
+                break; // without break same text appears twice in my tests
+            } else if (bodyPart.isMimeType("text/html")) {
+                String html = (String) bodyPart.getContent();
+                result = result + "\n" + org.jsoup.Jsoup.parse(html).text();
+            } else if (bodyPart.getContent() instanceof MimeMultipart){
+                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
+            }
+        }
+        return result;
+    }
 }
+
