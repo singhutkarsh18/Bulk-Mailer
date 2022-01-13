@@ -96,9 +96,9 @@ public class MailerController {
                     name.concat(".").concat(extension));
             System.out.println(fileNamePath);
             Files.write(fileNamePath, file.getBytes());
-            return new ResponseEntity<>("Image uploaded", HttpStatus.CREATED);
+            return new ResponseEntity<>("File uploaded", HttpStatus.CREATED);
         } catch (IOException ex) {
-            return new ResponseEntity<>("Image is not uploaded", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
         }
     }
     @PostMapping("/uploadTemplate")

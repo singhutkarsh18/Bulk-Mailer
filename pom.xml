@@ -86,7 +86,16 @@
             <artifactId>jsoup</artifactId>
             <version>1.14.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.29.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.3.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

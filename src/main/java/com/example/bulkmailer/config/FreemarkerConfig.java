@@ -1,4 +1,4 @@
-package com.example.bulkmailer.Security;
+package com.example.bulkmailer.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
