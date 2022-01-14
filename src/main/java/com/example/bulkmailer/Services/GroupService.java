@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.util.Iterator;
 import java.util.List;
@@ -31,23 +32,20 @@ public class GroupService {
     public String makeGroups(GroupRequest groupRequest) {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
-//        if(!(groupRepo.findByName(groupRequest.getName()) == null))
-//            throw new IllegalStateException("Name already present");
         String id= UUID.randomUUID().toString();
-
         Groups group= new Groups(id,groupRequest.getName(),userRepository.findByUsername(username).get(),null);
         groupRepo.save(group);
-//        addEmails(groupRepo.findByName(group.getName()).getId(), groupRequest.getEmails());
         addEmails(id, groupRequest.getEmails());
         return "OK";
     }
     public void addEmails(String group_id, List<String> emails)
     {
-        Iterator itr=emails.iterator();
-        while(itr.hasNext())
-        {
-            emailRepo.save(new Emails(null,(String) itr.next(),groupRepo.getById(group_id)));
+        if(emails.isEmpty())
+            throw new EntityNotFoundException("No email found");
+        for (String email : emails) {
+            emailRepo.save(new Emails(null, email, groupRepo.getById(group_id)));
         }
+
     }
     public Set<Emails> getGroupEmails(String groupId) {
         if(groupRepo.findById(groupId).isEmpty())

@@ -5,18 +5,29 @@ import com.example.bulkmailer.Entities.DTOs.GoogleRequest;
 import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.RegisterService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController @AllArgsConstructor
@@ -27,6 +38,8 @@ public class SignUpController {
     private RegisterService registerService;
     private UserRepository userRepository;
     private GroupRepo groupRepo;
+    private UserDetailsService userDetailsService;
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request )
@@ -124,66 +137,47 @@ public class SignUpController {
         }
     }
     @PostMapping("/google")
-    public ResponseEntity<?> googleSignIn(@RequestBody GoogleRequest googleRequest) {
-//        String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
-//        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-//                .setAudience(Collections.singletonList(CLIENT_ID))
-//                .build();
-//
-//        String idTokenString=token.getToken();
-//        GoogleIdToken idToken = verifier.verify(idTokenString);
-//        if (idToken != null) {
-//            Payload payload = idToken.getPayload();
-//
-//            String userId = payload.getSubject();
-//            System.out.println("User ID: " + userId);
-//
-//            String email = payload.getEmail();
-//            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
-//            String name = (String) payload.get("name");
-//
-            if(!userRepository.findByUsername(googleRequest.getEmail()).isPresent())
-                userRepository.save(new AppUser(googleRequest.getName(),googleRequest.getEmail(),null,0));
-                return ResponseEntity.status(HttpStatus.CREATED).build();
-//            if(emailVerified)
-//            else
-//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("email not verified");
-//
-//        } else {
-//            System.out.println("Invalid ID token.");
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
-//        }
+    public ResponseEntity<?> googleSignIn(@RequestBody GoogleRequest token) throws GeneralSecurityException, IOException {
+        String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(CLIENT_ID))
+                .build();
+        String idTokenString= token.getToken();
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken != null) {
+            Payload payload = idToken.getPayload();
+            String userId = payload.getSubject();
+            System.out.println("User ID: " + userId);
+            String email = payload.getEmail();
+            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+            String name = (String) payload.get("name");
+            if(emailVerified)
+            {
+                userRepository.save(new AppUser(name,email,null,0));
+                final UserDetails userDetails = userDetailsService
+                        .loadUserByUsername(email);
+
+                final String access_token= jwtUtil.generateAccessToken(userDetails);
+                final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
+                Map<String,String> responseToken = new HashMap<>();
+                responseToken.put("access_token",access_token);
+                responseToken.put("refresh_token",refresh_token);
+                return ResponseEntity.status(HttpStatus.OK).body(responseToken);
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not verified");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid ID token.");
+        }
 
     }
-    @GetMapping("/hello")
+    @GetMapping("/")
     public String hello()
     {
         return "Hello APi";
     }
-    @GetMapping("/allUsers")
-    public ResponseEntity<?> allUsers()
-    {
-        return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll());
-    }
-    @GetMapping("/allGroups")
-    public ResponseEntity<?> allGroups()
-    {
-        return ResponseEntity.status(HttpStatus.OK).body(groupRepo.findAll());
-    }
-    @DeleteMapping("/deleteGroups/{groupId}")
-    public ResponseEntity<?> deleteGroup(@PathVariable String groupId)
-    {   groupRepo.deleteById(groupId);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-    @DeleteMapping("/deleteUser/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId)
-    {   userRepository.deleteById(userId);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-    @GetMapping("/getAllGroups/{userId}")
-    public ResponseEntity<?> getAllGroups(@PathVariable Long userId)
-    {   AppUser appUser =userRepository.findById(userId).get();
-        return ResponseEntity.status(HttpStatus.OK).body(appUser.getGroups());
-    }
+
 
 }

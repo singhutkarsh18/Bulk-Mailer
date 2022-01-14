@@ -36,30 +36,6 @@ public class JwtAuthenticationController {
 
     private UserRepository userRepository;
     private RegisterService registerService;
-
-//    @PostMapping("/authenticate")
-//    public ResponseEntity<?> createStudentAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
-//
-//        String auth =registerService.authenticateStudent(authenticationRequest.getUsername(), authenticationRequest.getPassword());
-//        if(auth.equals("true")) {
-//            final UserDetails userDetails = userDetailsService
-//                    .loadUserByUsername(authenticationRequest.getUsername());
-//
-//            final String access_token= jwtUtil.generateAccessToken(userDetails);
-//            final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
-//            Map<String,String> token = new HashMap<>();
-//            token.put("access_token",access_token);
-//            token.put("refresh_token",refresh_token);
-//            return ResponseEntity.ok(token);
-//        }
-//        else if(auth.equals("User not found"))
-//        {
-//            return new ResponseEntity<>(auth, HttpStatus.NOT_FOUND);
-//        }
-//        else{
-//            return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
-//        }
-//    }
     @PostMapping("/authenticate")
     public ResponseEntity<?> createStudentAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
 
@@ -98,7 +74,7 @@ public class JwtAuthenticationController {
         try {
             DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
             String refreshToken = request.getHeader("refresh_token");
-            if (!userRepository.findByUsername(jwtUtil.getUsernameFromToken(refreshToken)).isPresent())
+            if (userRepository.findByUsername(jwtUtil.getUsernameFromToken(refreshToken)).isEmpty())
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not present");
             UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.getUsernameFromToken(refreshToken));
 

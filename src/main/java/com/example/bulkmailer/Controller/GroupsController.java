@@ -1,7 +1,9 @@
 package com.example.bulkmailer.Controller;
 
+import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GroupRequest;
+import com.example.bulkmailer.Entities.DTOs.UpdateGroupReq;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.GroupService;
 import lombok.AllArgsConstructor;
@@ -11,6 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+
+import javax.persistence.EntityNotFoundException;
+import java.util.Map;
 
 
 @RestController@CrossOrigin("*")
@@ -81,4 +86,21 @@ public class GroupsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getLocalizedMessage());
         }
     }
+    @PutMapping("/updateGroup/{groupId}")
+    public ResponseEntity<?> updateGroup(@RequestBody UpdateGroupReq updateGroupReq)
+    {
+        try{
+            groupService.addEmails(updateGroupReq.getGroupId(),updateGroupReq.getEmails());
+            return ResponseEntity.status(HttpStatus.OK).body("Emails added");
+        }
+        catch (UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+        }
+        catch (EntityNotFoundException e2)
+        {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e2.getLocalizedMessage());
+        }
+    }
+
 }

@@ -1,8 +1,8 @@
 package com.example.bulkmailer.Controller;
 
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
-import com.example.bulkmailer.Entities.DTOs.Recipients;
 import com.example.bulkmailer.Entities.DTOs.MailModel;
+import com.example.bulkmailer.Entities.DTOs.Recipients;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Services.BulkMailService;
@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.NoSuchElementException;
