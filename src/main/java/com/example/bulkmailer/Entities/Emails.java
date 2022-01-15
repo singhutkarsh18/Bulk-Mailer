@@ -1,5 +1,6 @@
 package com.example.bulkmailer.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class Emails {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "group_id",referencedColumnName = "id")
     private Groups groups;
 }
