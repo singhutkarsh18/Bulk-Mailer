@@ -1,5 +1,6 @@
 package com.example.bulkmailer.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter@Setter @EqualsAndHashCode
 @Entity
@@ -25,6 +28,14 @@ public class AppUser implements UserDetails {
     private Boolean enabled=false;
     private String role="USER";
     private int otp;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
+    private Set<Groups> groups=new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
+    private Set<PreviousMail> previousMails = new HashSet<>();
 
     public AppUser(String name, String username, String password,int otp) {
         this.name = name;

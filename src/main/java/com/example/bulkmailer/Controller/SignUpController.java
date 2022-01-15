@@ -1,17 +1,33 @@
 package com.example.bulkmailer.Controller;
 
+import com.example.bulkmailer.Entities.AppUser;
+import com.example.bulkmailer.Entities.DTOs.GoogleRequest;
 import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.JWT.JwtUtil;
+import com.example.bulkmailer.Repository.GroupRepo;
+import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.RegisterService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController @AllArgsConstructor
@@ -20,6 +36,10 @@ import java.util.Map;
 public class SignUpController {
 
     private RegisterService registerService;
+    private UserRepository userRepository;
+    private GroupRepo groupRepo;
+    private UserDetailsService userDetailsService;
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request )
@@ -116,10 +136,48 @@ public class SignUpController {
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
         }
     }
-    @GetMapping("/hello")
+    @PostMapping("/google")
+    public ResponseEntity<?> googleSignIn(@RequestBody GoogleRequest token) throws GeneralSecurityException, IOException {
+        String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(CLIENT_ID))
+                .build();
+        String idTokenString= token.getToken();
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken != null) {
+            Payload payload = idToken.getPayload();
+            String userId = payload.getSubject();
+            System.out.println("User ID: " + userId);
+            String email = payload.getEmail();
+            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+            String name = (String) payload.get("name");
+            if(emailVerified)
+            {
+                userRepository.save(new AppUser(name,email,null,0));
+                final UserDetails userDetails = userDetailsService
+                        .loadUserByUsername(email);
+
+                final String access_token= jwtUtil.generateAccessToken(userDetails);
+                final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
+                Map<String,String> responseToken = new HashMap<>();
+                responseToken.put("access_token",access_token);
+                responseToken.put("refresh_token",refresh_token);
+                return ResponseEntity.status(HttpStatus.OK).body(responseToken);
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not verified");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid ID token.");
+        }
+
+    }
+    @GetMapping("/")
     public String hello()
     {
         return "Hello APi";
     }
+
 
 }

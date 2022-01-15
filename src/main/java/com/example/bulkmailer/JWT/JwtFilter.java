@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 
 @Component@AllArgsConstructor@Slf4j
@@ -44,11 +43,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 System.out.println("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
                 System.out.println("JWT Token has expired");
-                DataInputStream in = new DataInputStream((InputStream)request.getInputStream());
+                DataInputStream in = new DataInputStream(request.getInputStream());
                 String message="JWT Token has expired";
                 response.setContentType("text/plain;charset=UTF-8");
                 response.setContentLength(message.length());
-                response.setStatus(403);
+                response.setStatus(410);
                 PrintWriter out = response.getWriter();
                 out.println(message);
                 in.close();
