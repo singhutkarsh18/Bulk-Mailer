@@ -80,6 +80,10 @@ public class GroupService {
     }
 
     public String updateEmails(String groupId, List<String> emails) {
+        if(emails.isEmpty())
+            throw new EntityNotFoundException("No email found");
+        if(groupRepo.findById(groupId).isEmpty())
+            throw new UsernameNotFoundException("Group not found");
         Set<String> emails1 = new LinkedHashSet<>(emails);
         Integer c=emails1.size();
         List<Emails> e= new ArrayList<>();
