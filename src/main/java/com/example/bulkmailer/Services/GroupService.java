@@ -19,7 +19,7 @@ import javax.transaction.Transactional;
 import java.util.*;
 
 @AllArgsConstructor
-@Service@Getter@Setter@Transactional
+@Service@Getter@Setter
 public class GroupService {
 
     private GroupRepo groupRepo;
@@ -71,6 +71,7 @@ public class GroupService {
         if(emailRepo.findById(emailId).isEmpty())
             throw new UsernameNotFoundException("Email not found");
         String groupId=emailRepo.findById(emailId).get().getGroups().getId();
+
         emailRepo.deleteById(emailId);
         Groups groups = groupRepo.findById(groupId).get();
         Integer count=groups.getCount();

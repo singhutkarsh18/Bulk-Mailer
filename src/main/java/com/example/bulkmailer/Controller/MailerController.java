@@ -48,10 +48,10 @@ public class MailerController {
         try{
             return ResponseEntity.status(HttpStatus.OK).body(bulkMailService.sendBulkMail(emailRequest));
         }
-        catch (NoSuchElementException e)
-        {
+        catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (MessagingException | UnsupportedEncodingException e) {
+        }
+        catch (MessagingException | UnsupportedEncodingException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }

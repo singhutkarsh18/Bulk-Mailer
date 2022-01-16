@@ -24,7 +24,7 @@ public class Groups {
     private AppUser appUser;
 
     @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "groups",cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER,mappedBy = "groups",cascade = CascadeType.ALL)
     private Set<Emails> emails=new HashSet<>();
 
 }

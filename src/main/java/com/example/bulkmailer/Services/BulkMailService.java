@@ -33,13 +33,14 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@Service @Slf4j @AllArgsConstructor
+@Service @Slf4j @AllArgsConstructor@Transactional
 public class BulkMailService {
 
     private JavaMailSender mailSender;
@@ -91,7 +92,6 @@ public class BulkMailService {
         }
 //        return (end-start);
     }
-    @Async("threadPoolTaskExecutor")
     public String sendBulkMail(EmailRequest emailRequest) throws MessagingException,UnsupportedEncodingException {
 
             if(groupRepo.findById(emailRequest.getGroupId()).isEmpty())
