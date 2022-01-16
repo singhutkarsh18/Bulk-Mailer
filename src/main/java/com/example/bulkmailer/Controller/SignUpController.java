@@ -173,11 +173,5 @@ public class SignUpController {
         }
 
     }
-    @GetMapping("/")
-    public String hello()
-    {
-        return "Hello APi";
-    }
-
 
 }
