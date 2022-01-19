@@ -10,10 +10,12 @@ import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import java.io.File;
@@ -87,7 +89,7 @@ public class MailerController {
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,
                                          @RequestParam("fileName") String name) {
         try {
-            String imageDirectory ="./src/main/resources/uploads";
+            String imageDirectory =new ClassPathResource("static/uploads").getFile().getAbsolutePath();
             makeDirectoryIfNotExist(imageDirectory);
             String[] fileFrags = file.getOriginalFilename().split("\\.");
             String extension = fileFrags[fileFrags.length-1];
@@ -95,7 +97,7 @@ public class MailerController {
                     name.concat(".").concat(extension));
             System.out.println(fileNamePath);
             Files.write(fileNamePath, file.getBytes());
-            return new ResponseEntity<>("File uploaded", HttpStatus.CREATED);
+            return new ResponseEntity<>(ServletUriComponentsBuilder.fromCurrentContextPath().path("/static").path("/uploads/").path(name.concat("."+extension)).toUriString(), HttpStatus.CREATED);
         } catch (IOException ex) {
             return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
         }
@@ -104,7 +106,7 @@ public class MailerController {
     public ResponseEntity<?> uploadTemplate(@RequestParam("file") MultipartFile file,
                                          @RequestParam("fileName") String name) {
         try {
-            String imageDirectory ="./src/main/resources/templates";
+            String imageDirectory =new ClassPathResource("static/templates").getFile().getAbsolutePath();
             makeDirectoryIfNotExist(imageDirectory);
             String[] fileFrags = file.getOriginalFilename().split("\\.");
             String extension = fileFrags[fileFrags.length-1];

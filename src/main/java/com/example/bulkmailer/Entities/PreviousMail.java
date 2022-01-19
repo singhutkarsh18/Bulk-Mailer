@@ -18,7 +18,10 @@ public class PreviousMail {
 
     @Column(columnDefinition = "TEXT")
     private String body;
+
     private String groupName;
+//    private String date;
+//    private String time;
     private String attachmentName;
 
     @ManyToOne(fetch = FetchType.LAZY)
