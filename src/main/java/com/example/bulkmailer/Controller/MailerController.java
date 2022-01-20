@@ -99,6 +99,7 @@ public class MailerController {
             Files.write(fileNamePath, file.getBytes());
             return new ResponseEntity<>(ServletUriComponentsBuilder.fromCurrentContextPath().path("/static").path("/uploads/").path(name.concat("."+extension)).toUriString(), HttpStatus.CREATED);
         } catch (IOException ex) {
+            ex.printStackTrace();
             return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
         }
     }
