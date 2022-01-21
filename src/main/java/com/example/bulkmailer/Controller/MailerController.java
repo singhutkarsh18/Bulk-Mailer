@@ -89,7 +89,7 @@ public class MailerController {
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,
                                          @RequestParam("fileName") String name) {
         try {
-            String imageDirectory =new ClassPathResource("static/uploads").getFile().getAbsolutePath();
+            String imageDirectory =System.getProperty("user.dir")+"/target/classes/uploads";
             makeDirectoryIfNotExist(imageDirectory);
             String[] fileFrags = file.getOriginalFilename().split("\\.");
             String extension = fileFrags[fileFrags.length-1];
@@ -120,11 +120,14 @@ public class MailerController {
             return new ResponseEntity<>("Template is not uploaded", HttpStatus.BAD_REQUEST);
         }
     }
-    private void makeDirectoryIfNotExist(String imageDirectory) {
+    private void makeDirectoryIfNotExist(String imageDirectory) throws IOException {
         File directory = new File(imageDirectory);
-        if (!directory.exists()) {
-            directory.mkdir();
+        if (!Files.exists(Paths.get(imageDirectory))) {
+            Files.createDirectory(Paths.get(imageDirectory));
         }
     }
+    private void saveFile(String imageDirectory)
+    {
 
+    }
 }
