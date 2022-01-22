@@ -27,7 +27,7 @@ public class GroupsController {
     @PostMapping("/add")
     public ResponseEntity<?> addGroups(@RequestBody GroupRequest groupRequest)
     {
-        try {
+        try {//TODO:sort the array alphabetical
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroups(groupRequest));
         }
         catch (IllegalStateException e1)
@@ -42,7 +42,7 @@ public class GroupsController {
             UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String username=userDetails.getUsername();
             AppUser appUser = userRepository.findByUsername(username).get();
-            if(appUser.getGroups()==null)
+            if(appUser.getGroups()==null)//see once more
                 throw new IllegalStateException("No group found");
             return ResponseEntity.status(HttpStatus.OK).body(appUser.getGroups());
         }
@@ -54,6 +54,7 @@ public class GroupsController {
     @GetMapping("/getEmails/{groupId}")
     public ResponseEntity<?> getEmails(@PathVariable String groupId)
     {
+        // User should get
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.getGroupEmails(groupId));
         }

@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 import java.util.*;
 
 @AllArgsConstructor
@@ -46,14 +45,6 @@ public class GroupService {
         }
         emailRepo.saveAll(e);
     }
-//    public List<String> removeDuplicates(List<String> emails)
-//    {
-//        Set<String> s = new LinkedHashSet<>();
-//        s.addAll(emails);
-//        emails.clear();
-//        emails.addAll(s);
-//        return emails;
-//    }
     public Set<Emails> getGroupEmails(String groupId) {
         if(groupRepo.findById(groupId).isEmpty())
             throw new UsernameNotFoundException("No email found");
@@ -80,7 +71,7 @@ public class GroupService {
         return "Email deleted";
     }
 
-    public String updateEmails(String groupId, List<String> emails) {
+    public List<Emails> updateEmails(String groupId, List<String> emails) {
         if(emails.isEmpty())
             throw new EntityNotFoundException("No email found");
         if(groupRepo.findById(groupId).isEmpty())
@@ -91,11 +82,10 @@ public class GroupService {
         for (String email : emails) {
             e.add(new Emails(null, email, groupRepo.getById(groupId)));
         }
-        emailRepo.saveAll(e);
+        List<Emails> updatedEmailsList = emailRepo.saveAll(e);
         Groups groups = groupRepo.findById(groupId).get();
         Integer count = groups.getCount();
         groups.setCount(count+c);
-        groupRepo.save(groups);
-        return "Emails added";
+        return updatedEmailsList;
     }
 }

@@ -1,12 +1,9 @@
 package com.example.bulkmailer.Services;
 
-import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
-import com.example.bulkmailer.Entities.DTOs.Recipients;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
-import com.example.bulkmailer.Entities.DTOs.MailModel;
 import com.example.bulkmailer.Entities.PreviousMail;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.PreviousMailRepo;
@@ -21,24 +18,29 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.BodyPart;
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 @Service @Slf4j @AllArgsConstructor@Transactional
 public class BulkMailService {
@@ -57,41 +59,8 @@ public class BulkMailService {
 
     private UserRepository userRepository;
 
-    @Async("threadPoolTaskExecutor")
-    public void sendBulk(Recipients recipients){
+    private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
-        try {
-
-            Iterator itr = removeDuplicates(recipients.getEmails()).iterator();
-            Long start = System.currentTimeMillis();
-            log.info("StartTime-{}", start);
-
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, true);
-            helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
-            helper.setText(recipients.getBody(), true);
-            helper.setSubject(recipients.getSubject());
-            helper.addAttachment("image.jpg", new File("C:\\Users\\utkar\\Desktop\\image.jpg"));
-            while(itr.hasNext())
-            {
-                String recipient = (String) itr.next();
-                msg.addRecipients(Message.RecipientType.BCC,recipient);
-            }
-            mailService.sendMail(msg);
-            Long end = System.currentTimeMillis();
-            log.info("EndTime-{}", end);
-            log.info("Execution time - {}", end - start);
-        }
-        catch (MessagingException e1)
-        {
-            log.error(e1.toString());
-        }
-        catch ( UnsupportedEncodingException e2)
-        {
-            log.error(e2.toString());
-        }
-//        return (end-start);
-    }
     public String sendBulkMail(EmailRequest emailRequest) throws MessagingException,UnsupportedEncodingException {
 
             if(groupRepo.findById(emailRequest.getGroupId()).isEmpty())
@@ -106,8 +75,11 @@ public class BulkMailService {
             helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
             helper.setText(emailRequest.getBody(), true);
             helper.setSubject(emailRequest.getSubject());
-            if(emailRequest.getAttachment()!=null)
-                helper.addAttachment(emailRequest.getAttachment(), new File("./src/main/resources/uploads/"+emailRequest.getAttachment()));
+            for(String fileName:emailRequest.getAttachment())
+            {
+                log.info("Attachment added : {}",fileName);
+                helper.addAttachment(fileName,new File(directory+"/"+fileName));
+            }
             while(itr.hasNext())
             {
                 Emails emails = (Emails) itr.next();
@@ -120,44 +92,6 @@ public class BulkMailService {
             log.info("Execution time - {}", end - start);
             return "Email sent";
     }
-    public List<String> removeDuplicates(List<String> emails)
-    {
-        Set<String> s = new LinkedHashSet<>();
-        s.addAll(emails);
-        emails.clear();
-        emails.addAll(s);
-        return emails;
-    }
-
-
-    public String sendEmail(MailModel mailModel) throws MessagingException, IOException, TemplateException {
-
-        long start=System.currentTimeMillis();
-        mailModel.setModel(mailModel.getModel());
-
-
-        log.info("Sending Email to: " + mailModel.getTo());
-
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
-        Template template = emailConfig.getTemplate("email.ftl");
-        String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, mailModel.getModel());
-
-        mimeMessageHelper.setTo(mailModel.getTo());
-        mimeMessageHelper.setText(html, true);
-        mimeMessageHelper.setSubject(mailModel.getSubject());
-        mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
-        FileSystemResource res = new FileSystemResource(new File("./src/main/resources/uploads/silogo.png"));
-        mimeMessageHelper.addInline("image", res);
-
-
-        mailSender.send(message);
-        long end=System.currentTimeMillis();
-        log.info("Time -{}",end-start);
-        return "mail sent";
-    }
-
 
     public String sendEmailTemplates(TemplateModel templateModel) throws MessagingException, IOException, TemplateException {
         long start=System.currentTimeMillis();
@@ -182,48 +116,69 @@ public class BulkMailService {
         mimeMessageHelper.setSubject(templateModel.getSubject());
         mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "SI mailer");
         mimeMessageHelper.addInline("image", new FileSystemResource(new File("./src/main/resources/uploads/"+templateModel.getModel().get("logo"))));
-        if(templateModel.getAttachment()!=null)
-            mimeMessageHelper.addAttachment(templateModel.getAttachment(), new File("./src/main/resources/uploads/"+templateModel.getAttachment()));
+        if(templateModel.getAttachment().size()==0)
+        {
+            for(String emailName:templateModel.getAttachment()){
+                mimeMessageHelper.addAttachment(emailName,new File(directory+templateModel.getAttachment()));
+            }
+        }
+
         mailSender.send(message);
-        addToHistory(message.getSubject(), getTextFromMessage(message),groups.getName(),templateModel.getAttachment());
+//        addToHistory(message.getSubject(),groups.getName(),templateModel.getAttachment());
         long end=System.currentTimeMillis();
         log.info("Time -{}",end-start);
         return "mail sent";
     }
-    public void addToHistory(String subject, String body, String groupName, String attachmentName)
+    public void addToHistory(String subject, String groupName, String attachmentName)
     {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
-        previousMailRepo.save(new PreviousMail(null,subject,body,groupName,attachmentName,userRepository.findByUsername(username).get()));
-
+        LocalDateTime localDateTime =LocalDateTime.now();
+        DateTimeFormatter date = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
+        previousMailRepo.save(new PreviousMail(null,subject,groupName, localDateTime.format(date), localDateTime.format(time),attachmentName,userRepository.findByUsername(username).get()));
     }
-    private String getTextFromMessage(Message message) throws MessagingException, IOException {
-        String result = "";
-        if (message.isMimeType("text/plain")) {
-            result = message.getContent().toString();
-        } else if (message.isMimeType("multipart/*")) {
-            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
-            result = getTextFromMimeMultipart(mimeMultipart);
-        }
-        return result;
+//    private String getTextFromMessage(Message message) throws MessagingException, IOException {
+//        String result = "";
+//        if (message.isMimeType("text/plain")) {
+//            result = message.getContent().toString();
+//        } else if (message.isMimeType("multipart/*")) {
+//            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+//            result = getTextFromMimeMultipart(mimeMultipart);
+//        }
+//        return result;
+//    }
+//    private String getTextFromMimeMultipart(
+//            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
+//        String result = "";
+//        int count = mimeMultipart.getCount();
+//        for (int i = 0; i < count; i++) {
+//            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+//            if (bodyPart.isMimeType("text/plain")) {
+//                result = result + "\n" + bodyPart.getContent();
+//                break; // without break same text appears twice in my tests
+//            } else if (bodyPart.isMimeType("text/html")) {
+//                String html = (String) bodyPart.getContent();
+//                result = result + "\n" + org.jsoup.Jsoup.parse(html).text();
+//            } else if (bodyPart.getContent() instanceof MimeMultipart){
+//                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
+//            }
+//        }
+//        return result;
+//    }
+    public void saveFile(String imageDirectory, MultipartFile file, String name) throws IOException, NullPointerException {
+        makeDirectoryIfNotExist(imageDirectory);
+        String[] fileFrags = file.getOriginalFilename().split("\\.");
+        String extension = fileFrags[fileFrags.length-1];
+        Path fileNamePath = Paths.get(imageDirectory,
+                name.concat(".").concat(extension));
+        System.out.println(fileNamePath);
+        Files.write(fileNamePath, file.getBytes());
     }
-    private String getTextFromMimeMultipart(
-            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
-        String result = "";
-        int count = mimeMultipart.getCount();
-        for (int i = 0; i < count; i++) {
-            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-            if (bodyPart.isMimeType("text/plain")) {
-                result = result + "\n" + bodyPart.getContent();
-                break; // without break same text appears twice in my tests
-            } else if (bodyPart.isMimeType("text/html")) {
-                String html = (String) bodyPart.getContent();
-                result = result + "\n" + org.jsoup.Jsoup.parse(html).text();
-            } else if (bodyPart.getContent() instanceof MimeMultipart){
-                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
-            }
+    private void makeDirectoryIfNotExist(String imageDirectory) throws IOException {
+        if (!Files.exists(Paths.get(imageDirectory))) {
+            Files.createDirectory(Paths.get(imageDirectory));
         }
-        return result;
     }
 }
 

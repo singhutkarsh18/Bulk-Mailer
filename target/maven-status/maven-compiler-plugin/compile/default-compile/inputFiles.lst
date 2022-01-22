@@ -18,6 +18,7 @@ D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Entities\AppUser.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Security\WebServerFactoryCustomizerImpl.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Controller\GroupsController.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Controller\JwtAuthenticationController.java
+D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\config\UploadException.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Entities\DTOs\Recipients.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\config\FreemarkerConfig.java
 D:\Bulk-Mailer\src\main\java\com\example\bulkmailer\Entities\DTOs\TemplateModel.java

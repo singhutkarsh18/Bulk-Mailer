@@ -25,6 +25,7 @@ com\example\bulkmailer\Entities\AppUser.class
 com\example\bulkmailer\Entities\DTOs\PasswordDto.class
 com\example\bulkmailer\Entities\RegistrationRequest.class
 com\example\bulkmailer\Entities\DTOs\GroupRequest.class
+com\example\bulkmailer\config\UploadException.class
 com\example\bulkmailer\Controller\JwtAuthenticationController.class
 com\example\bulkmailer\Entities\DTOs\OTP.class
 com\example\bulkmailer\Controller\GroupsController.class
