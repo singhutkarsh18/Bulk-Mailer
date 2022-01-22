@@ -12,7 +12,7 @@ public class FreemarkerConfig {
     @Bean(name="emailConfigBean")@Primary
     public FreeMarkerConfigurationFactoryBean getFreeMarkerConfiguration(ResourceLoader resourceLoader) {
         FreeMarkerConfigurationFactoryBean bean = new FreeMarkerConfigurationFactoryBean();
-        bean.setTemplateLoaderPath("classpath:/templates/");
+        bean.setTemplateLoaderPath(System.getProperty("user.dir")+"/target/classes/uploads/");
         return bean;
     }
 }

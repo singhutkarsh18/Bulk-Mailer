@@ -1,10 +1,12 @@
 package com.example.bulkmailer.Services;
 
+import com.example.bulkmailer.Entities.Attachments;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.PreviousMail;
+import com.example.bulkmailer.Repository.AttachmentRepo;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.PreviousMailRepo;
 import com.example.bulkmailer.Repository.UserRepository;
@@ -24,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
@@ -39,8 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service @Slf4j @AllArgsConstructor@Transactional
 public class BulkMailService {
@@ -58,6 +58,8 @@ public class BulkMailService {
     private PreviousMailRepo previousMailRepo;
 
     private UserRepository userRepository;
+
+    private AttachmentRepo attachmentRepo;
 
     private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
@@ -87,6 +89,7 @@ public class BulkMailService {
                 msg.addRecipients(Message.RecipientType.BCC,email);
             }
             mailService.sendMail(msg);
+            addToHistory(msg.getSubject(),groups.getName(),new HashSet<>(emailRequest.getAttachment()));
             Long end = System.currentTimeMillis();
             log.info("EndTime-{}", end);
             log.info("Execution time - {}", end - start);
@@ -124,48 +127,26 @@ public class BulkMailService {
         }
 
         mailSender.send(message);
-//        addToHistory(message.getSubject(),groups.getName(),templateModel.getAttachment());
+        addToHistory(message.getSubject(),groups.getName(),new HashSet<>(templateModel.getAttachment()));
         long end=System.currentTimeMillis();
         log.info("Time -{}",end-start);
         return "mail sent";
     }
-    public void addToHistory(String subject, String groupName, String attachmentName)
+    public void addToHistory(String subject, String groupName, Set<String> attachmentName)
     {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
         LocalDateTime localDateTime =LocalDateTime.now();
         DateTimeFormatter date = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
-        previousMailRepo.save(new PreviousMail(null,subject,groupName, localDateTime.format(date), localDateTime.format(time),attachmentName,userRepository.findByUsername(username).get()));
+        PreviousMail previousMail=previousMailRepo.save(new PreviousMail(null,subject,groupName, localDateTime.format(date), localDateTime.format(time),null,userRepository.findByUsername(username).get()));
+        List<Attachments> attachments =new ArrayList<>();
+        for(String attachment:attachmentName)
+        {
+            attachments.add(new Attachments(null,attachment,previousMail));
+        }
+        attachmentRepo.saveAll(attachments);
     }
-//    private String getTextFromMessage(Message message) throws MessagingException, IOException {
-//        String result = "";
-//        if (message.isMimeType("text/plain")) {
-//            result = message.getContent().toString();
-//        } else if (message.isMimeType("multipart/*")) {
-//            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
-//            result = getTextFromMimeMultipart(mimeMultipart);
-//        }
-//        return result;
-//    }
-//    private String getTextFromMimeMultipart(
-//            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
-//        String result = "";
-//        int count = mimeMultipart.getCount();
-//        for (int i = 0; i < count; i++) {
-//            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-//            if (bodyPart.isMimeType("text/plain")) {
-//                result = result + "\n" + bodyPart.getContent();
-//                break; // without break same text appears twice in my tests
-//            } else if (bodyPart.isMimeType("text/html")) {
-//                String html = (String) bodyPart.getContent();
-//                result = result + "\n" + org.jsoup.Jsoup.parse(html).text();
-//            } else if (bodyPart.getContent() instanceof MimeMultipart){
-//                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
-//            }
-//        }
-//        return result;
-//    }
     public void saveFile(String imageDirectory, MultipartFile file, String name) throws IOException, NullPointerException {
         makeDirectoryIfNotExist(imageDirectory);
         String[] fileFrags = file.getOriginalFilename().split("\\.");
