@@ -120,7 +120,7 @@ public class BulkMailService {
         mimeMessageHelper.setSubject(templateModel.getSubject());
         mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "SI mailer");
         mimeMessageHelper.addInline("image", new FileSystemResource(new File("./src/main/resources/uploads/"+templateModel.getModel().get("logo"))));
-        if(templateModel.getAttachment().size()==0)
+        if(templateModel.getAttachment()!=null)
         {
             for(String emailName:templateModel.getAttachment()){
                 mimeMessageHelper.addAttachment(emailName,new File(directory+templateModel.getAttachment()));
