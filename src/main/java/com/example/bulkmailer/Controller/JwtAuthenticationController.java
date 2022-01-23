@@ -73,7 +73,7 @@ public class JwtAuthenticationController {
     public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
         try {
             DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
-            String refreshToken = request.getHeader("refresh_token");
+            String refreshToken = request.getHeader("refresh-token");
             if (userRepository.findByUsername(jwtUtil.getUsernameFromToken(refreshToken)).isEmpty())
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not present");
             UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.getUsernameFromToken(refreshToken));

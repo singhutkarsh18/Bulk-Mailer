@@ -77,10 +77,11 @@ public class BulkMailService {
             helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
             helper.setText(emailRequest.getBody(), true);
             helper.setSubject(emailRequest.getSubject());
-            for(String fileName:emailRequest.getAttachment())
-            {
-                log.info("Attachment added : {}",fileName);
-                helper.addAttachment(fileName,new File(directory+"/"+fileName));
+            if(emailRequest.getAttachment()!=null) {
+                for (String fileName : emailRequest.getAttachment()) {
+                    log.info("Attachment added : {}", fileName);
+                    helper.addAttachment(fileName, new File(directory + "/" + fileName));
+                }
             }
             while(itr.hasNext())
             {
