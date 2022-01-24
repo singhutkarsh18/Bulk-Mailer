@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.mail.MessagingException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -35,14 +37,15 @@ public class MailerController {
     public ResponseEntity<?> sendMail(@RequestBody EmailRequest emailRequest)
     {
         try{
-            return ResponseEntity.status(HttpStatus.OK).body(bulkMailService.sendBulkMail(emailRequest));
+            String res =bulkMailService.sendBulkMail(emailRequest);
+            if (!res.equals("Mail not sent"))
+                return ResponseEntity.status(HttpStatus.OK).body("Mail sent");
+            else
+                return ResponseEntity.status(424).body("Mail not sent");
+
         }
         catch (NoSuchElementException e1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getMessage());
-        }
-        catch (IllegalStateException e2)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e2.getMessage());
         }
         catch (MessagingException | IOException e3) {
             e3.printStackTrace();
@@ -61,17 +64,13 @@ public class MailerController {
         {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getMessage());
         }
-        catch (IllegalStateException e2)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e2.getMessage());
-        }
         catch (MessagingException | TemplateException | IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
 
     }
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,
                                          @RequestParam("fileName") String name) {
         try {
@@ -87,5 +86,20 @@ public class MailerController {
         }
     }
 
-
+    @GetMapping("/get/previousMail")
+    public ResponseEntity<?> getPreviousMail(Principal principal)
+    {
+        try{
+            return ResponseEntity.ok(bulkMailService.showPreviousMail(principal));
+        }
+        catch(UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getMessage());
+        }
+        catch (Exception e2)
+        {
+            e2.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getMessage());
+        }
+    }
 }

@@ -6,11 +6,19 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import javax.mail.MessagingException;
+import java.io.IOException;
+
 @ControllerAdvice
 public class UploadException {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> handleMaxSizeException(MaxUploadSizeExceededException exc) {
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Max size exceeded");
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Max file size limit exceeded");
     }
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<?> handleIOException(MessagingException exc) {
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("File not found!");
+    }
+
 }

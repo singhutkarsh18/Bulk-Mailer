@@ -25,7 +25,7 @@ public class PreviousMail {
     @OneToMany(fetch = FetchType.EAGER,mappedBy = "previousMail",cascade = CascadeType.ALL)
     private Set<Attachments> attachment=new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)@JsonIgnore
     @JoinColumn(name = "user_id",referencedColumnName = "id")
     private AppUser appUser;
 }

@@ -5,13 +5,14 @@ com\example\bulkmailer\JWT\JwtRequest.class
 com\example\bulkmailer\Services\BulkMailService.class
 com\example\bulkmailer\Services\OtpService$1.class
 com\example\bulkmailer\Entities\Groups.class
+com\example\bulkmailer\Entities\Attachments.class
 com\example\bulkmailer\Services\MailService.class
 com\example\bulkmailer\Repository\UserRepository.class
+com\example\bulkmailer\Repository\AttachmentRepo.class
 com\example\bulkmailer\Controller\SignUpController.class
 com\example\bulkmailer\Entities\DTOs\UpdateGroupReq.class
 com\example\bulkmailer\Services\AppUserService.class
 com\example\bulkmailer\Repository\GroupRepo.class
-com\example\bulkmailer\Entities\DTOs\MailModel.class
 com\example\bulkmailer\Entities\DTOs\Mail.class
 com\example\bulkmailer\JWT\JwtAuthenticationEntryPoint.class
 com\example\bulkmailer\JWT\JwtUtil.class

@@ -22,6 +22,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,12 +33,14 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -64,8 +67,8 @@ public class BulkMailService {
     private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
     public String sendBulkMail(EmailRequest emailRequest) throws MessagingException,UnsupportedEncodingException {
-
-            if(groupRepo.findById(emailRequest.getGroupId()).isEmpty())
+        try {
+            if (groupRepo.findById(emailRequest.getGroupId()).isEmpty())
                 throw new NoSuchElementException("Group not found");
             Groups groups = groupRepo.findById(emailRequest.getGroupId()).get();
             Iterator itr = groups.getEmails().iterator();
@@ -77,24 +80,28 @@ public class BulkMailService {
             helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
             helper.setText(emailRequest.getBody(), true);
             helper.setSubject(emailRequest.getSubject());
-            if(emailRequest.getAttachment()!=null) {
+            if (emailRequest.getAttachment() != null) {
                 for (String fileName : emailRequest.getAttachment()) {
                     log.info("Attachment added : {}", fileName);
                     helper.addAttachment(fileName, new File(directory + "/" + fileName));
                 }
             }
-            while(itr.hasNext())
-            {
+            while (itr.hasNext()) {
                 Emails emails = (Emails) itr.next();
-                String email=emails.getEmail();
-                msg.addRecipients(Message.RecipientType.BCC,email);
+                String email = emails.getEmail();
+                msg.addRecipients(Message.RecipientType.BCC, email);
             }
             mailService.sendMail(msg);
-            addToHistory(msg.getSubject(),groups.getName(),new HashSet<>(emailRequest.getAttachment()));
+            addToHistory(msg.getSubject(), groups.getName(), new HashSet<>(emailRequest.getAttachment()));
             Long end = System.currentTimeMillis();
             log.info("EndTime-{}", end);
             log.info("Execution time - {}", end - start);
             return "Email sent";
+        }
+        catch (MessagingException | IOException |RuntimeException e)
+        {
+            return "Mail not sent";
+        }
     }
 
     public String sendEmailTemplates(TemplateModel templateModel) throws MessagingException, IOException, TemplateException {
@@ -161,6 +168,12 @@ public class BulkMailService {
         if (!Files.exists(Paths.get(imageDirectory))) {
             Files.createDirectory(Paths.get(imageDirectory));
         }
+    }
+
+    public Set<PreviousMail> showPreviousMail(Principal principal) {
+        if(userRepository.findByUsername(principal.getName()).isEmpty())
+            throw new UsernameNotFoundException("User not found");
+        return userRepository.findByUsername(principal.getName()).get().getPreviousMails();
     }
 }
 

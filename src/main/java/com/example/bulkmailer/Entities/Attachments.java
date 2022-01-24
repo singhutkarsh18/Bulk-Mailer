@@ -14,7 +14,7 @@ public class Attachments {
     private Long id;
     private String attachmentName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)@JsonIgnore
     @JoinColumn(name = "previous_mail_id",referencedColumnName = "id")
     private PreviousMail previousMail;
 }
