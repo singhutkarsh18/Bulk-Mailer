@@ -14,12 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,6 +88,20 @@ public class JwtAuthenticationController {
         catch (SignatureException e2)
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e2.getLocalizedMessage());
+        }
+    }
+    @GetMapping("/getUser")
+    public ResponseEntity<?> getUser(Principal principal)
+    {
+        try{
+            Map<String,String> m = new HashMap<>();
+            m.put("name",userRepository.findByUsername(principal.getName()).get().getName());
+            m.put("username",userRepository.findByUsername(principal.getName()).get().getUsername());
+            return ResponseEntity.status(HttpStatus.OK).body(m);
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("error");
         }
     }
 

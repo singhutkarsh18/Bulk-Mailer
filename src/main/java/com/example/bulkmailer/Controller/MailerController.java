@@ -30,8 +30,8 @@ import java.util.NoSuchElementException;
 public class MailerController {
     @Autowired
     private BulkMailService bulkMailService;
-
     private GroupRepo groupRepo;
+
     private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
     @PostMapping("/sendMail")
@@ -119,4 +119,5 @@ public class MailerController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
     }
+
 }
