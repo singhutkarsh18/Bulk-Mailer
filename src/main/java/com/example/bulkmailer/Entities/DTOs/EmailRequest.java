@@ -6,6 +6,7 @@ import java.util.List;
 
 @Getter
 public class EmailRequest {
+    private String from;
     private String groupId;
     private String subject;
     private String body;

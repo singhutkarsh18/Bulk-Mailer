@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 
 @AllArgsConstructor
@@ -16,6 +17,9 @@ public class Emails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Nullable
+    private String name;
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)

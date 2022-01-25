@@ -1,6 +1,7 @@
 package com.example.bulkmailer.Controller;
 
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
+import com.example.bulkmailer.Entities.DTOs.NameReq;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Services.BulkMailService;
@@ -70,7 +71,7 @@ public class MailerController {
         }
 
     }
-    @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/upload")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,
                                          @RequestParam("fileName") String name) {
         try {
@@ -100,6 +101,22 @@ public class MailerController {
         {
             e2.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getMessage());
+        }
+    }
+    @PostMapping("/sendWithName")
+    public ResponseEntity<?> sendWithName(@RequestBody NameReq nameReq)
+    {
+        try{
+            bulkMailService.sendBulkWithName(nameReq);
+            return ResponseEntity.status(HttpStatus.OK).body("Mail sent");
+        }
+        catch (NoSuchElementException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getMessage());
+        }
+        catch (MessagingException | TemplateException | IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
     }
 }

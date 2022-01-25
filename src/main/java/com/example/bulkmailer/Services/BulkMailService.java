@@ -2,6 +2,8 @@ package com.example.bulkmailer.Services;
 
 import com.example.bulkmailer.Entities.Attachments;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
+import com.example.bulkmailer.Entities.DTOs.NameEmail;
+import com.example.bulkmailer.Entities.DTOs.NameReq;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
@@ -10,6 +12,7 @@ import com.example.bulkmailer.Repository.AttachmentRepo;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.PreviousMailRepo;
 import com.example.bulkmailer.Repository.UserRepository;
+import freemarker.cache.FileTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -50,8 +53,8 @@ public class BulkMailService {
 
     private JavaMailSender mailSender;
 
-    @Autowired
-    @Qualifier("emailConfigBean")
+//    @Autowired
+//    @Qualifier("emailConfigBean")
     private Configuration emailConfig;
 
     private MailService mailService;
@@ -77,7 +80,7 @@ public class BulkMailService {
 
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true);
-            helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "Bulk mailer");
+            helper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), emailRequest.getFrom());
             helper.setText(emailRequest.getBody(), true);
             helper.setSubject(emailRequest.getSubject());
             if (emailRequest.getAttachment() != null) {
@@ -114,6 +117,7 @@ public class BulkMailService {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+        emailConfig.setDirectoryForTemplateLoading(new File(directory));
         Template template = emailConfig.getTemplate(templateModel.getTemplateName());
         String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateModel.getModel());
         while(itr.hasNext())
@@ -125,8 +129,8 @@ public class BulkMailService {
         }
         mimeMessageHelper.setText(html, true);
         mimeMessageHelper.setSubject(templateModel.getSubject());
-        mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), "SI mailer");
-        mimeMessageHelper.addInline("image", new FileSystemResource(new File("./src/main/resources/uploads/"+templateModel.getModel().get("logo"))));
+        mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")), templateModel.getFrom());
+        mimeMessageHelper.addInline("image", new FileSystemResource(new File(directory+"/"+templateModel.getModel().get("logo"))));
         if(templateModel.getAttachment()!=null)
         {
             for(String emailName:templateModel.getAttachment()){
@@ -174,6 +178,44 @@ public class BulkMailService {
         if(userRepository.findByUsername(principal.getName()).isEmpty())
             throw new UsernameNotFoundException("User not found");
         return userRepository.findByUsername(principal.getName()).get().getPreviousMails();
+    }
+
+    public String sendBulkWithName(NameReq nameReq) throws MessagingException, IOException, TemplateException {
+        long start=System.currentTimeMillis();
+        if (groupRepo.findById(nameReq.getGroupId()).isEmpty())
+            throw new NoSuchElementException("Group not found");
+        Groups groups = groupRepo.findById(nameReq.getGroupId()).get();
+        Iterator itr = groups.getEmails().iterator();
+
+        while (itr.hasNext())
+        {
+            Emails emails = (Emails) itr.next();
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+            emailConfig.setDirectoryForTemplateLoading(new File(directory));
+            mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")),nameReq.getFrom());
+            Template template = emailConfig.getTemplate(nameReq.getTemplateName());
+            mimeMessageHelper.setSubject("test name mail");
+            Map<String,String> model = new HashMap<>();
+            model.put("name",emails.getName());
+            String html = FreeMarkerTemplateUtils.processTemplateIntoString(template,model);
+            mimeMessageHelper.setText(html, true);
+            if(nameReq.getLogo()!=null)
+                mimeMessageHelper.addInline("image", new FileSystemResource(new File(directory+"/"+nameReq.getLogo())));
+            if(nameReq.getAttachment()!=null)
+            {
+                for(String attachment:nameReq.getAttachment()){
+                    mimeMessageHelper.addAttachment(attachment,new File(directory+"/"+attachment));
+                }
+            }
+            log.info("Mail sent -{} {}",emails.getName(),emails.getEmail());
+            mimeMessageHelper.setTo(emails.getEmail());
+            mailSender.send(message);
+        }
+        long end=System.currentTimeMillis();
+        log.info("Time -{}",end-start);
+        return "Mail sent";
+
     }
 }
 

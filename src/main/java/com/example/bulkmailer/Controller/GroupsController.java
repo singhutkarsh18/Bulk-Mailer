@@ -2,6 +2,7 @@ package com.example.bulkmailer.Controller;
 
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GroupRequest;
+import com.example.bulkmailer.Entities.DTOs.GroupWithNameReq;
 import com.example.bulkmailer.Entities.DTOs.UpdateGroupReq;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.GroupService;
@@ -35,7 +36,17 @@ public class GroupsController {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
         }
     }
-
+    @PostMapping("/addWithName")
+    public ResponseEntity<?> addWithName(@RequestBody GroupWithNameReq groupRequest)
+    {
+        try {//TODO:sort the array alphabetical
+            return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroupsWtihName(groupRequest));
+        }
+        catch (IllegalStateException e1)
+        {
+            return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
+        }
+    }
     @GetMapping("/getAllGroups")
     public ResponseEntity<?> getAllGroups() {
         try {
