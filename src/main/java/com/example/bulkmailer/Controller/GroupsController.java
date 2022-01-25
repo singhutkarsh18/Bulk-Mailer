@@ -5,6 +5,7 @@ import com.example.bulkmailer.Entities.DTOs.GroupRequest;
 import com.example.bulkmailer.Entities.DTOs.GroupWithNameReq;
 import com.example.bulkmailer.Entities.DTOs.UpdateGroupReq;
 import com.example.bulkmailer.Entities.DTOs.UpdateNameEmail;
+import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.GroupService;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RestController@CrossOrigin("*")
@@ -40,7 +43,7 @@ public class GroupsController {
     @PostMapping("/addWithName")
     public ResponseEntity<?> addWithName(@RequestBody GroupWithNameReq groupRequest)
     {
-        try {//TODO:sort the array alphabetical
+        try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroupsWtihName(groupRequest));
         }
         catch (IllegalStateException e1)
@@ -56,7 +59,11 @@ public class GroupsController {
             AppUser appUser = userRepository.findByUsername(username).get();
             if(appUser.getGroups()==null)//see once more
                 throw new IllegalStateException("No group found");
-            return ResponseEntity.status(HttpStatus.OK).body(appUser.getGroups());
+            List<Groups> groupsList= new ArrayList<>(appUser.getGroups());
+            groupsList.sort((Groups a,Groups b)->{
+                return a.getName().compareTo(b.getName());
+            });
+            return ResponseEntity.status(HttpStatus.OK).body(groupsList);
         }
         catch (IllegalStateException e)
         {

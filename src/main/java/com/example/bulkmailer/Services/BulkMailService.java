@@ -173,10 +173,12 @@ public class BulkMailService {
         }
     }
 
-    public Set<PreviousMail> showPreviousMail(Principal principal) {
+    public List<PreviousMail> showPreviousMail(Principal principal) {
         if(userRepository.findByUsername(principal.getName()).isEmpty())
             throw new UsernameNotFoundException("User not found");
-        return userRepository.findByUsername(principal.getName()).get().getPreviousMails();
+        List<PreviousMail> previousMail = new ArrayList<>(userRepository.findByUsername(principal.getName()).get().getPreviousMails());
+        Collections.sort(previousMail,(PreviousMail a,PreviousMail b)->a.getId()<b.getId()?-1:1);
+        return previousMail;
     }
 
     public String sendBulkWithName(NameReq nameReq) throws MessagingException, IOException, TemplateException {
@@ -214,8 +216,8 @@ public class BulkMailService {
         }
         long end=System.currentTimeMillis();
         log.info("Time -{}",end-start);
+        addToHistory(nameReq.getSubject(),groups.getName(),new HashSet<>(nameReq.getAttachment()));
         return "Mail sent";
 
     }
 }
-
