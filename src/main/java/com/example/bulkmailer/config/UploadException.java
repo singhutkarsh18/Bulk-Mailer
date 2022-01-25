@@ -18,7 +18,7 @@ public class UploadException {
     }
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<?> handleIOException(MessagingException exc) {
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("File not found!");
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Error file not found\n1. Maybe file not found\n2. Maybe credentials wrong \n ");
     }
 
 }

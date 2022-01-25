@@ -36,6 +36,9 @@ public class AppUser implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
     private Set<PreviousMail> previousMails = new HashSet<>();
+    @JsonIgnore
+    @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
+    private Set<Template> templates = new HashSet<>();
 
     public AppUser(String name, String username, String password,int otp) {
         this.name = name;

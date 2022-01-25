@@ -3,7 +3,10 @@ package com.example.bulkmailer.Controller;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
 import com.example.bulkmailer.Entities.DTOs.NameReq;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
+import com.example.bulkmailer.Entities.Template;
 import com.example.bulkmailer.Repository.GroupRepo;
+import com.example.bulkmailer.Repository.TemplateRepo;
+import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.BulkMailService;
 import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
@@ -18,7 +21,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +33,8 @@ public class MailerController {
     @Autowired
     private BulkMailService bulkMailService;
     private GroupRepo groupRepo;
+    private TemplateRepo templateRepo;
+    private UserRepository userRepository;
 
     private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
@@ -86,7 +90,37 @@ public class MailerController {
             return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
         }
     }
-
+    @PostMapping(value = "/uploadTemplate")
+    public ResponseEntity<?> uploadTemplate(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("fileName") String name,Principal principal) {
+        try {
+            bulkMailService.saveFile(directory,file,name);
+            String[] fileFrags = file.getOriginalFilename().split("\\.");
+            Map<String,Object> res=new HashMap<>();
+            res.put("fileName",(name.concat("."+fileFrags[fileFrags.length-1])));
+            templateRepo.save(new Template((Long) null,name.concat("."+fileFrags[fileFrags.length-1]),userRepository.findByUsername(principal.getName()).get()));
+            return new ResponseEntity<>(res, HttpStatus.CREATED);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/get/templates")
+    public ResponseEntity<?> getTemplates(Principal principal)
+    {
+        try{
+            return ResponseEntity.ok(userRepository.findByUsername(principal.getName()).get().getTemplates());
+        }
+        catch(UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getMessage());
+        }
+        catch (Exception e2)
+        {
+            e2.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getMessage());
+        }
+    }
     @GetMapping("/get/previousMail")
     public ResponseEntity<?> getPreviousMail(Principal principal)
     {

@@ -11,7 +11,7 @@ public class NameReq {
     private String subject;
     private List<String> attachment;
     private String logo;
-    private String templateName;
+    private Long templateId;
     private String groupId;
     private Map<String, String> model;
 }

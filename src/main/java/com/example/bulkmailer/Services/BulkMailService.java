@@ -8,10 +8,7 @@ import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.PreviousMail;
-import com.example.bulkmailer.Repository.AttachmentRepo;
-import com.example.bulkmailer.Repository.GroupRepo;
-import com.example.bulkmailer.Repository.PreviousMailRepo;
-import com.example.bulkmailer.Repository.UserRepository;
+import com.example.bulkmailer.Repository.*;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -66,6 +63,8 @@ public class BulkMailService {
     private UserRepository userRepository;
 
     private AttachmentRepo attachmentRepo;
+
+    private TemplateRepo templateRepo;
 
     private final String directory =System.getProperty("user.dir")+"/target/classes/uploads";
 
@@ -194,7 +193,8 @@ public class BulkMailService {
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
             emailConfig.setDirectoryForTemplateLoading(new File(directory));
             mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")),nameReq.getFrom());
-            Template template = emailConfig.getTemplate(nameReq.getTemplateName());
+            //TODO: throw an exception for template not found
+            Template template = emailConfig.getTemplate(templateRepo.findById(nameReq.getTemplateId()).get().getName());
             mimeMessageHelper.setSubject("test name mail");
             Map<String,String> model = new HashMap<>();
             model.put("name",emails.getName());
