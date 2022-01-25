@@ -96,10 +96,10 @@ public class MailerController {
         try {
             bulkMailService.saveFile(directory,file,name);
             String[] fileFrags = file.getOriginalFilename().split("\\.");
-            Map<String,Object> res=new HashMap<>();
-            res.put("fileName",(name.concat("."+fileFrags[fileFrags.length-1])));
-            templateRepo.save(new Template((Long) null,name.concat("."+fileFrags[fileFrags.length-1]),userRepository.findByUsername(principal.getName()).get()));
-            return new ResponseEntity<>(res, HttpStatus.CREATED);
+//            Map<String,Object> res=new HashMap<>();
+//            res.put("fileName",(name.concat("."+fileFrags[fileFrags.length-1])));
+
+            return new ResponseEntity<>(templateRepo.save(new Template((Long) null,name.concat("."+fileFrags[fileFrags.length-1]),userRepository.findByUsername(principal.getName()).get())), HttpStatus.CREATED);
         } catch (IOException ex) {
             ex.printStackTrace();
             return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);

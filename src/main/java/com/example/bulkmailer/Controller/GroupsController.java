@@ -73,7 +73,6 @@ public class GroupsController {
     @GetMapping("/getEmails/{groupId}")
     public ResponseEntity<?> getEmails(@PathVariable String groupId)
     {
-        // User should get
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.getGroupEmails(groupId));
         }
