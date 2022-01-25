@@ -27,6 +27,7 @@ public class GroupService {
     private GroupRepo groupRepo;
     private UserRepository userRepository;
     private EmailRepo emailRepo;
+    private RegisterService registerService;
 
     public String makeGroups(GroupRequest groupRequest) {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -90,6 +91,7 @@ public class GroupService {
         Groups groups = groupRepo.findById(groupId).get();
         Integer count = groups.getCount();
         groups.setCount(count+c);
+        groupRepo.save(groups);
         return updatedEmailsList;
     }
 
@@ -113,5 +115,23 @@ public class GroupService {
             e.add(new Emails(null, nameEmail1.getName(), nameEmail1.getEmail(), groupRepo.getById(group_id)));
         }
         emailRepo.saveAll(e);
+    }
+    public List<Emails> updateEmailsWithName(String groupId, Set<NameEmail> nameEmail) {
+        if(nameEmail.isEmpty())
+            throw new EntityNotFoundException("No email found");
+        if(groupRepo.findById(groupId).isEmpty())
+            throw new UsernameNotFoundException("Group not found");
+        Set<NameEmail> nameEmail1 = new LinkedHashSet<>(nameEmail);
+        Integer c=nameEmail.size();
+        List<Emails> e= new ArrayList<>();
+        for (NameEmail nameEmail2 : nameEmail) {
+            e.add(new Emails(null, nameEmail2.getName(), nameEmail2.getEmail(), groupRepo.getById(groupId)));
+        }
+        List<Emails> updatedEmailsList = emailRepo.saveAll(e);
+        Groups groups = groupRepo.findById(groupId).get();
+        Integer count = groups.getCount();
+        groups.setCount(count+c);
+        groupRepo.save(groups);
+        return updatedEmailsList;
     }
 }

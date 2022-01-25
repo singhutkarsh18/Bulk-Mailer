@@ -4,6 +4,7 @@ import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GroupRequest;
 import com.example.bulkmailer.Entities.DTOs.GroupWithNameReq;
 import com.example.bulkmailer.Entities.DTOs.UpdateGroupReq;
+import com.example.bulkmailer.Entities.DTOs.UpdateNameEmail;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.GroupService;
 import lombok.AllArgsConstructor;
@@ -101,6 +102,21 @@ public class GroupsController {
     {
         try{
             return ResponseEntity.status(HttpStatus.OK).body(groupService.updateEmails(updateGroupReq.getGroupId(),updateGroupReq.getEmails()));
+        }
+        catch (UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+        }
+        catch (EntityNotFoundException e2)
+        {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e2.getLocalizedMessage());
+        }
+    }
+    @PutMapping("/updateGroupWithName")
+    public ResponseEntity<?> updateGroupWithName(@RequestBody UpdateNameEmail updateNameEmail)
+    {
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(groupService.updateEmailsWithName(updateNameEmail.getGroupId(),updateNameEmail.getNameEmails()));
         }
         catch (UsernameNotFoundException e1)
         {
