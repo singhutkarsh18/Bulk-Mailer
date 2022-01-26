@@ -2,11 +2,14 @@ package com.example.bulkmailer.Services;
 
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.Mail;
+import com.example.bulkmailer.Entities.DTOs.PasswordChangeDTO;
 import com.example.bulkmailer.Entities.RegistrationRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.auth.InvalidCredentialsException;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -84,11 +88,6 @@ public class RegisterService {
             log.info("Mail - {} {} ",appUser.getUsername(), appUser.getOtp());
         }
     }
-//    public void sendOtp(AppUser appUser)
-//    {
-//        String message = "OTP to verify your account is " + appUser.getOtp();
-//        otpService.sendMail("Verify Your account", appUser.getUsername(), message);
-//    }
 
 
     public Boolean verifyAcc(int userOtp,String username)
@@ -183,31 +182,7 @@ public class RegisterService {
         userRepository.save(appUser);
         return "otp sent";
     }
-//    public String authenticateStudent(String username, String password)  {
-//
-//        try {
-//            if(!userRepository.findByUsername(username).isPresent())
-//                throw new UsernameNotFoundException("User not found");
-//            AppUser appUser = userRepository.findByUsername(username).get();
-//            if (passwordEncoder.matches(password, appUser.getPassword())) {
-//                return "true";
-//            } else {
-//                System.out.println(username);
-//                System.out.println(passwordEncoder.matches(password, appUser.getPassword()));
-//                return "false";
-//            }
-//        }
-//        catch(ExpiredJwtException e1)
-//        {
-//            log.info(e1.getLocalizedMessage());
-//            return "JWT token has expired";
-//        }
-//        catch (UsernameNotFoundException e)
-//        {
-//            System.out.println(e.getLocalizedMessage());
-//            return "User not found";
-//        }
-//    }
+
     public boolean authenticateStudent(String username, String password)  {
         if(!userRepository.findByUsername(username).isPresent())
             throw new UsernameNotFoundException("User Not present");
@@ -219,5 +194,22 @@ public class RegisterService {
         if (!passwordEncoder.matches(password, appUser.getPassword()))
             throw new IllegalStateException("incorrect password");
         return true;
+    }
+
+    public String changePassword(PasswordChangeDTO passwordChangeDTO, Principal principal){
+        if(principal.getName()==null)
+            throw new RuntimeException("Access token not present");
+        if(userRepository.findByUsername(principal.getName()).isEmpty())
+            throw new UsernameNotFoundException("User Not Found");
+        AppUser appUser= userRepository.findByUsername(principal.getName()).get();
+        if(!passwordEncoder.matches(passwordChangeDTO.getOldPassword(),appUser.getPassword()))
+            throw new IllegalArgumentException("Old password does not match");
+        if(passwordChangeDTO.getNewPassword().equals(passwordChangeDTO.getOldPassword()))
+            throw new UnsupportedOperationException("New password and old password cannot be same");
+        if(!email_password_Validator(passwordRegex, passwordChangeDTO.getNewPassword()))
+            throw new IllegalStateException("Password not valid");
+        appUser.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
+        userRepository.saveAndFlush(appUser);
+        return "Password changed";
     }
 }

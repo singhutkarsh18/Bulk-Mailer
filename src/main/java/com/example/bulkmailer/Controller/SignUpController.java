@@ -3,6 +3,7 @@ package com.example.bulkmailer.Controller;
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GoogleRequest;
 import com.example.bulkmailer.Entities.DTOs.OTP;
+import com.example.bulkmailer.Entities.DTOs.PasswordChangeDTO;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
 import com.example.bulkmailer.JWT.JwtUtil;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -173,5 +175,27 @@ public class SignUpController {
         }
 
     }
-
+    @PostMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, Principal principal)
+    {
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(registerService.changePassword(passwordChangeDTO,principal));
+        }
+        catch(UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+        }
+        catch (IllegalArgumentException e2)
+        {
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e2.getLocalizedMessage());
+        }
+        catch (IllegalStateException e3)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e3.getLocalizedMessage());
+        }
+        catch (RuntimeException e4)
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e4.getLocalizedMessage());
+        }
+    }
 }
