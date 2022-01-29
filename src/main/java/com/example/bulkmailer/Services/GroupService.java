@@ -1,5 +1,6 @@
 package com.example.bulkmailer.Services;
 
+import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GroupRequest;
 import com.example.bulkmailer.Entities.DTOs.GroupWithNameReq;
 import com.example.bulkmailer.Entities.DTOs.NameEmail;
@@ -32,8 +33,13 @@ public class GroupService {
     public String makeGroups(GroupRequest groupRequest) {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
-        if(groupRepo.findByName(groupRequest.getName())!=null)
-            throw new UnsupportedOperationException("Name already taken");
+        //TODO: User should only get his groups name not duplicate
+        AppUser appUser = userRepository.findByUsername(username).get();
+        Set<Groups> groups = appUser.getGroups();
+        groups.forEach((n)->{
+            if(n.getName().equals(groupRequest.getName()))
+                throw new UnsupportedOperationException("Name already taken");
+        });
         String id= UUID.randomUUID().toString();
         Set<String> emails = new LinkedHashSet<>(groupRequest.getEmails());
         Groups group= new Groups(id,groupRequest.getName(),emails.size(),userRepository.findByUsername(username).get(),null);
@@ -105,8 +111,12 @@ public class GroupService {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
         String id= UUID.randomUUID().toString();
-        if(groupRepo.findByName(groupRequest.getName())!=null)
-            throw new UnsupportedOperationException("Name already taken");
+        AppUser appUser = userRepository.findByUsername(username).get();
+        Set<Groups> groups = appUser.getGroups();
+        groups.forEach((n)->{
+            if(n.getName().equals(groupRequest.getName()))
+                throw new UnsupportedOperationException("Name already taken");
+        });
         Set<NameEmail> nameEmails = new LinkedHashSet<>(groupRequest.getNameEmail());
         Groups group= new Groups(id,groupRequest.getName(),nameEmails.size(),userRepository.findByUsername(username).get(),null);
         groupRepo.save(group);
