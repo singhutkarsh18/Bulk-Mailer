@@ -2,21 +2,17 @@ package com.example.bulkmailer.Services;
 
 import com.example.bulkmailer.Entities.Attachments;
 import com.example.bulkmailer.Entities.DTOs.EmailRequest;
-import com.example.bulkmailer.Entities.DTOs.NameEmail;
 import com.example.bulkmailer.Entities.DTOs.NameReq;
 import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.PreviousMail;
 import com.example.bulkmailer.Repository.*;
-import freemarker.cache.FileTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -33,7 +29,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -50,8 +45,7 @@ public class BulkMailService {
 
     private JavaMailSender mailSender;
 
-//    @Autowired
-//    @Qualifier("emailConfigBean")
+
     private Configuration emailConfig;
 
     private MailService mailService;

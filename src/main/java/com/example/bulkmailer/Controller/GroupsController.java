@@ -32,12 +32,16 @@ public class GroupsController {
     @PostMapping("/add")
     public ResponseEntity<?> addGroups(@RequestBody GroupRequest groupRequest)
     {
-        try {//TODO:sort the array alphabetical
+        try {
             return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroups(groupRequest));
         }
-        catch (IllegalStateException e1)
+        catch (EntityNotFoundException e1)
         {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
+        }
+        catch (UnsupportedOperationException e2)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getLocalizedMessage());
         }
     }
     @PostMapping("/addWithName")
@@ -49,6 +53,10 @@ public class GroupsController {
         catch (IllegalStateException e1)
         {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(e1.getLocalizedMessage());
+        }
+        catch (UnsupportedOperationException e2)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getLocalizedMessage());
         }
     }
     @GetMapping("/getAllGroups")

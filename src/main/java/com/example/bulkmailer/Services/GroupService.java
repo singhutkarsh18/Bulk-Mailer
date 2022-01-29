@@ -32,6 +32,8 @@ public class GroupService {
     public String makeGroups(GroupRequest groupRequest) {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
+        if(groupRepo.findByName(groupRequest.getName())!=null)
+            throw new UnsupportedOperationException("Name already taken");
         String id= UUID.randomUUID().toString();
         Set<String> emails = new LinkedHashSet<>(groupRequest.getEmails());
         Groups group= new Groups(id,groupRequest.getName(),emails.size(),userRepository.findByUsername(username).get(),null);
@@ -103,7 +105,8 @@ public class GroupService {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
         String id= UUID.randomUUID().toString();
-
+        if(groupRepo.findByName(groupRequest.getName())!=null)
+            throw new UnsupportedOperationException("Name already taken");
         Set<NameEmail> nameEmails = new LinkedHashSet<>(groupRequest.getNameEmail());
         Groups group= new Groups(id,groupRequest.getName(),nameEmails.size(),userRepository.findByUsername(username).get(),null);
         groupRepo.save(group);

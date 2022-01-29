@@ -12,9 +12,6 @@ public class FreemarkerConfig {
 
     @Bean(name="emailConfigBean")@Primary
     public FreeMarkerConfigurer freemarkerConfig() {
-//        FreeMarkerConfigurationFactoryBean bean = new FreeMarkerConfigurationFactoryBean();
-//        bean.setTemplateLoaderPath(System.getProperty("user.dir")+"/target/classes/uploads");
-//        return bean;
         FreeMarkerConfigurer freeMarkerConfigurer = new FreeMarkerConfigurer();
         freeMarkerConfigurer.setTemplateLoaderPath(System.getProperty("user.dir")+"/target/classes/uploads/");
         return freeMarkerConfigurer;
