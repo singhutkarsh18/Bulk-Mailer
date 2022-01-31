@@ -191,7 +191,7 @@ public class BulkMailService {
             mimeMessageHelper.setFrom(String.valueOf(new InternetAddress("loadingerror144@gmail.com")),nameReq.getFrom());
             //TODO: throw an exception for template not found
             Template template = emailConfig.getTemplate(templateRepo.findById(nameReq.getTemplateId()).get().getName());
-            mimeMessageHelper.setSubject("test name mail");
+            mimeMessageHelper.setSubject(nameReq.getSubject());
             Map<String,String> model = new HashMap<>();
             model.put("name",emails.getName());
             String html = FreeMarkerTemplateUtils.processTemplateIntoString(template,model);
