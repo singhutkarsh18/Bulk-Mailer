@@ -27,6 +27,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
@@ -213,5 +214,12 @@ public class BulkMailService {
         addToHistory(nameReq.getSubject(),groups.getName(),new HashSet<>(nameReq.getAttachment()));
         return "Mail sent";
 
+    }
+
+    public String removeTemplate(Long templateId) {
+        if(!templateRepo.existsById(templateId))
+            throw new EntityNotFoundException("Template not found");
+        templateRepo.deleteById(templateId);
+        return "Template deleted";
     }
 }

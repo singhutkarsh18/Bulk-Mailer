@@ -11,15 +11,22 @@ import com.example.bulkmailer.Services.BulkMailService;
 import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
+import org.hibernate.annotations.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.mail.MessagingException;
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
@@ -151,6 +158,21 @@ public class MailerController {
         catch (MessagingException | TemplateException | IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
+    }
+    @DeleteMapping("/deleteTemplate/{templateId}")
+    public ResponseEntity<?> deleteTemplate(@PathVariable("templateId") Long templateId)
+    {
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(bulkMailService.removeTemplate(templateId));
+        }
+        catch (EntityNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+        }
+        catch (Exception e2)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getLocalizedMessage());
         }
     }
 
