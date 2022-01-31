@@ -22,9 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.mail.MessagingException;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Slf4j@AllArgsConstructor
 @RestController@CrossOrigin("*")
@@ -109,7 +107,9 @@ public class MailerController {
     public ResponseEntity<?> getTemplates(Principal principal)
     {
         try{
-            return ResponseEntity.ok(userRepository.findByUsername(principal.getName()).get().getTemplates());
+            List<Template> templateList =new ArrayList<>(userRepository.findByUsername(principal.getName()).get().getTemplates());
+            templateList.sort(Comparator.comparing(Template::getId).reversed());
+            return ResponseEntity.ok(templateList);
         }
         catch(UsernameNotFoundException e1)
         {

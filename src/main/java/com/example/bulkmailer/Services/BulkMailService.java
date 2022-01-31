@@ -171,7 +171,7 @@ public class BulkMailService {
         if(userRepository.findByUsername(principal.getName()).isEmpty())
             throw new UsernameNotFoundException("User not found");
         List<PreviousMail> previousMail = new ArrayList<>(userRepository.findByUsername(principal.getName()).get().getPreviousMails());
-        Collections.sort(previousMail,(PreviousMail a,PreviousMail b)->a.getId()<b.getId()?-1:1);
+        previousMail.sort((PreviousMail a, PreviousMail b) -> a.getId() < b.getId() ? 1 : -1);
         return previousMail;
     }
 
