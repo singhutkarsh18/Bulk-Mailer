@@ -18,6 +18,7 @@ public class Groups {
     private String id;
     private String name;
     private Integer count;
+    private Boolean hasName;
 
     @ManyToOne@JsonIgnore
     @JoinColumn(name="user_id",referencedColumnName = "id")

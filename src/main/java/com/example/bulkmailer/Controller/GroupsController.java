@@ -29,11 +29,11 @@ public class GroupsController {
     private GroupService groupService;
     private UserRepository userRepository;
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addGroups(@RequestBody GroupRequest groupRequest)
+    @PostMapping("/add/{hasName}")
+    public ResponseEntity<?> addGroups(@RequestBody GroupRequest groupRequest,@PathVariable Boolean hasName)
     {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroups(groupRequest));
+            return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroups(groupRequest,hasName));
         }
         catch (EntityNotFoundException e1)
         {
@@ -44,11 +44,11 @@ public class GroupsController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e2.getLocalizedMessage());
         }
     }
-    @PostMapping("/addWithName")
-    public ResponseEntity<?> addWithName(@RequestBody GroupWithNameReq groupRequest)
+    @PostMapping("/addWithName/{hasName}")
+    public ResponseEntity<?> addWithName(@RequestBody GroupWithNameReq groupRequest,@PathVariable Boolean hasName)
     {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroupsWtihName(groupRequest));
+            return ResponseEntity.status(HttpStatus.CREATED).body(groupService.makeGroupsWtihName(groupRequest,hasName));
         }
         catch (IllegalStateException e1)
         {
