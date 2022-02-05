@@ -58,14 +58,19 @@ public class GroupService {
         }
         emailRepo.saveAll(e);
     }
-    public List<Emails> getGroupEmails(String groupId) {
+    public Object getGroupEmails(String groupId) {
         if(groupRepo.findById(groupId).isEmpty())
             throw new UsernameNotFoundException("No email found");
-        List<Emails> emailsList = new ArrayList<>(groupRepo.findById(groupId).get().getEmails());
+        Groups groups =groupRepo.findById(groupId).get();
+        List<Emails> emailsList = new ArrayList<>(groups.getEmails());
         emailsList.sort((Emails a,Emails b)->{
             return a.getId()<b.getId()?-1:1;
         });
-        return emailsList;
+        Map<String,Object> res = new HashMap<>();
+        res.put("hasName",groups.getHasName());
+        res.put("count",groups.getCount());
+        res.put("emails",emailsList);
+        return res;
     }
 
     public String deleteGroup(String groupId) {
