@@ -6,6 +6,7 @@ import com.example.bulkmailer.Entities.DTOs.OTP;
 import com.example.bulkmailer.Entities.DTOs.PasswordChangeDTO;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.Entities.Role;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.UserRepository;
@@ -31,6 +32,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController @AllArgsConstructor
 @RequestMapping("/signup")@Slf4j
@@ -155,10 +157,21 @@ public class SignUpController {
             String name = (String) payload.get("name");
             if(emailVerified)
             {
-                userRepository.save(new AppUser(name,email,null,0));
-                final UserDetails userDetails = userDetailsService
-                        .loadUserByUsername(email);
-
+                final UserDetails userDetails;
+                Optional<AppUser> appUser=userRepository.findByUsername(email);
+                if(appUser.isPresent()&&appUser.get().getRole().equals(Role.NORMAL_USER))
+                {
+                    return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("User already present");
+                }
+                else if(appUser.isPresent()&&appUser.get().getRole().equals(Role.GOOGLE_USER))
+                {
+                userDetails = userDetailsService.loadUserByUsername(email);
+                }
+                else
+                {
+                 userRepository.save(new AppUser(name,email,registerService.generatePassayPassword(),0,Role.GOOGLE_USER));
+                 userDetails = userDetailsService.loadUserByUsername(email);
+                }
                 final String access_token= jwtUtil.generateAccessToken(userDetails);
                 final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
                 Map<String,String> responseToken = new HashMap<>();

@@ -4,11 +4,16 @@ import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.Mail;
 import com.example.bulkmailer.Entities.DTOs.PasswordChangeDTO;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.Entities.Role;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.auth.InvalidCredentialsException;
+import org.passay.CharacterData;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.PasswordGenerator;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,6 +26,9 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import static org.springframework.beans.MethodInvocationException.ERROR_CODE;
+
 @Service@AllArgsConstructor@Slf4j
 public class RegisterService {
 
@@ -56,7 +64,7 @@ public class RegisterService {
                 userRepository.findByUsername((request.getUsername())).get().getEnabled()&&userRepository.findByUsername((request.getUsername())).get().getLocked())
             throw new IllegalStateException("password not set");
         int otp = otpService.generateOTP(request.getUsername());
-        AppUser appUser=new AppUser(request.getName(),request.getUsername(),null,otp);
+        AppUser appUser=new AppUser(request.getName(),request.getUsername(),null,otp, Role.NORMAL_USER);
         sendOtp(appUser);
         userRepository.save(appUser);
 
@@ -211,5 +219,34 @@ public class RegisterService {
         appUser.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
         userRepository.saveAndFlush(appUser);
         return "Password changed";
+    }
+    public String generatePassayPassword() {
+        PasswordGenerator gen = new PasswordGenerator();
+        CharacterData lowerCaseChars = EnglishCharacterData.LowerCase;
+        CharacterRule lowerCaseRule = new CharacterRule(lowerCaseChars);
+        lowerCaseRule.setNumberOfCharacters(2);
+
+        CharacterData upperCaseChars = EnglishCharacterData.UpperCase;
+        CharacterRule upperCaseRule = new CharacterRule(upperCaseChars);
+        upperCaseRule.setNumberOfCharacters(2);
+
+        CharacterData digitChars = EnglishCharacterData.Digit;
+        CharacterRule digitRule = new CharacterRule(digitChars);
+        digitRule.setNumberOfCharacters(2);
+
+        CharacterData specialChars = new CharacterData() {
+            public String getErrorCode() {
+                return ERROR_CODE;
+            }
+
+            public String getCharacters() {
+                return "!@#$%^&*_()";
+            }
+        };
+        CharacterRule splCharRule = new CharacterRule(specialChars);
+        splCharRule.setNumberOfCharacters(2);
+
+        return gen.generatePassword(10, splCharRule, lowerCaseRule,
+                upperCaseRule, digitRule);
     }
 }

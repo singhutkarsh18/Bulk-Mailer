@@ -26,7 +26,7 @@ public class AppUser implements UserDetails {
     private String password;
     private Boolean locked=true;
     private Boolean enabled=false;
-    private String role="USER";
+    private Role role;
     private int otp;
 
     @JsonIgnore
@@ -40,11 +40,12 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "appUser",cascade = CascadeType.ALL)
     private Set<Template> templates = new HashSet<>();
 
-    public AppUser(String name, String username, String password,int otp) {
+    public AppUser(String name, String username, String password,int otp,Role role) {
         this.name = name;
         this.username = username;
         this.password = password;
         this.otp=otp;
+        this.role=role;
     }
 
     public AppUser() {
@@ -52,7 +53,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role));
+        return Collections.singletonList(new SimpleGrantedAuthority("USER"));
     }
 
     @Override
