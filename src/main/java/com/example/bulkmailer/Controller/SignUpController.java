@@ -141,12 +141,12 @@ public class SignUpController {
         }
     }
     @PostMapping("/google")
-    public ResponseEntity<?> googleSignIn(@RequestBody GoogleRequest token) throws GeneralSecurityException, IOException {
+    public ResponseEntity<?> googleSignIn(@RequestBody HashMap<String,String> token) throws GeneralSecurityException, IOException {
         String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(CLIENT_ID))
                 .build();
-        String idTokenString= token.getToken();
+        String idTokenString= token.get("token");
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             Payload payload = idToken.getPayload();
@@ -169,7 +169,10 @@ public class SignUpController {
                 }
                 else
                 {
-                 userRepository.save(new AppUser(name,email,registerService.generatePassayPassword(),0,Role.GOOGLE_USER));
+                    AppUser appUser1 = new AppUser(name,email,registerService.generatePassayPassword(),0,Role.GOOGLE_USER);
+                    appUser1.setEnabled(true);
+                    appUser1.setLocked(false);
+                 userRepository.save(appUser1);
                  userDetails = userDetailsService.loadUserByUsername(email);
                 }
                 final String access_token= jwtUtil.generateAccessToken(userDetails);
