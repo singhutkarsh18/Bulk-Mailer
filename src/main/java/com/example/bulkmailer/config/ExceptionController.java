@@ -1,5 +1,6 @@
 package com.example.bulkmailer.config;
 
+import com.itextpdf.tool.xml.exceptions.RuntimeWorkerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,5 +28,11 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
     public final ResponseEntity<Error> handleAccessDeniedException(AccessDeniedException ex, WebRequest webRequest) {
         return new ResponseEntity<>(new Error("JWT Token has expired"), HttpStatus.GONE);
     }
+    @ExceptionHandler(RuntimeWorkerException.class)
+    public ResponseEntity<?> handleRuntimeWorkerException(RuntimeWorkerException exc)
+    {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(exc.getLocalizedMessage());
+    }
+
 
 }

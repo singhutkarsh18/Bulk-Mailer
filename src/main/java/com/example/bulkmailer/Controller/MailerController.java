@@ -8,6 +8,7 @@ import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.TemplateRepo;
 import com.example.bulkmailer.Repository.UserRepository;
 import com.example.bulkmailer.Services.BulkMailService;
+import com.itextpdf.tool.xml.exceptions.RuntimeWorkerException;
 import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +100,20 @@ public class MailerController {
 //            res.put("fileName",(name.concat("."+fileFrags[fileFrags.length-1])));
 
             return new ResponseEntity<>(templateRepo.save(new Template((Long) null,name.concat("."+fileFrags[fileFrags.length-1]),userRepository.findByUsername(principal.getName()).get())), HttpStatus.CREATED);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PostMapping(value = "/uploadPdf")
+    public ResponseEntity<?> uploadPdf(@RequestParam("file") MultipartFile file,
+                                       @RequestParam("fileName") String name,Principal principal) {
+        try {
+            bulkMailService.saveFile(directory,file,name);
+            String[] fileFrags = file.getOriginalFilename().split("\\.");
+            Map<String,Object> res=new HashMap<>();
+            res.put("fileName",(name.concat("."+fileFrags[fileFrags.length-1])));
+            return ResponseEntity.status(HttpStatus.CREATED).body(res);
         } catch (IOException ex) {
             ex.printStackTrace();
             return new ResponseEntity<>("File is not uploaded", HttpStatus.BAD_REQUEST);

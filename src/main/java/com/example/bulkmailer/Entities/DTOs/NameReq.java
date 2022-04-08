@@ -14,4 +14,5 @@ public class NameReq {
     private Long templateId;
     private String groupId;
     private Map<String, String> model;
+    private String pdfName;
 }

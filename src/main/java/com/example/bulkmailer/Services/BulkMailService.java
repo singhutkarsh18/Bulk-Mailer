@@ -8,6 +8,13 @@ import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.PreviousMail;
 import com.example.bulkmailer.Repository.*;
+import com.itextpdf.text.BadElementException;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.tool.xml.XMLWorkerHelper;
+import com.itextpdf.tool.xml.exceptions.RuntimeWorkerException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -29,9 +36,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -205,9 +210,16 @@ public class BulkMailService {
                     mimeMessageHelper.addAttachment(attachment,new File(directory+"/"+attachment));
                 }
             }
+            String pdfName="";
+            if (nameReq.getPdfName()!=null)
+            {
+                pdfName=html2pdf(emails.getName(),nameReq.getPdfName());
+                mimeMessageHelper.addAttachment(pdfName,new File(directory+"/"+pdfName));
+            }
             log.info("Mail sent -{} {}",emails.getName(),emails.getEmail());
             mimeMessageHelper.setTo(emails.getEmail());
             mailSender.send(message);
+
         }
         long end=System.currentTimeMillis();
         log.info("Time -{}",end-start);
@@ -221,5 +233,53 @@ public class BulkMailService {
             throw new EntityNotFoundException("Template not found");
         templateRepo.deleteById(templateId);
         return "Template deleted";
+    }
+    public String html2pdf(String name,String fileName) throws IOException, TemplateException {
+        emailConfig.setDirectoryForTemplateLoading(new File(directory));
+        Template template = emailConfig.getTemplate(fileName);
+        Map<String, String> model = new HashMap<>();
+        model.put("name",name);
+        String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        String fileName1 = fileName.substring(0,fileName.lastIndexOf('.'))+".pdf";
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            baos = generatePdf(html);
+        } catch (DocumentException e) {
+            System.out.println("Pdf not created");
+            e.printStackTrace();
+        }
+        Files.write(Path.of(directory+"/"+fileName1),baos.toByteArray());
+        return fileName1;
+    }
+    public ByteArrayOutputStream generatePdf(String html) throws DocumentException, IOException {
+
+        try {
+            String pdfFilePath = "";
+            PdfWriter pdfWriter = null;
+            Document document = new Document();
+
+
+            document = new Document();
+            document.setPageSize(PageSize.A4);
+            document.addTitle("Test Pdf");
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PdfWriter.getInstance(document, baos);
+
+            document.open();
+            XMLWorkerHelper xmlWorkerHelper = XMLWorkerHelper.getInstance();
+            xmlWorkerHelper.getDefaultCssResolver(true);
+            xmlWorkerHelper.parseXHtml(pdfWriter, document, new StringReader(
+                    html));
+
+
+            document.close();
+            System.out.println("PDF generated successfully");
+            return baos;
+        }
+        catch (RuntimeWorkerException e)
+        {
+            throw new RuntimeWorkerException("Invalid nested tag head found, expected closing tag link.");
+        }
     }
 }
