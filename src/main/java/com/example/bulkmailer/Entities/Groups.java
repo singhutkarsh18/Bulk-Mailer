@@ -18,13 +18,14 @@ public class Groups {
     private String id;
     private String name;
     private Integer count;
+    private Boolean hasName;
 
     @ManyToOne@JsonIgnore
     @JoinColumn(name="user_id",referencedColumnName = "id")
     private AppUser appUser;
 
     @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "groups",cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER,mappedBy = "groups",cascade = CascadeType.ALL)
     private Set<Emails> emails=new HashSet<>();
 
 }

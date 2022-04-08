@@ -1,11 +1,14 @@
 package com.example.bulkmailer.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity@Getter@Setter
 @NoArgsConstructor@AllArgsConstructor
@@ -15,13 +18,14 @@ public class PreviousMail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String subject;
-
-    @Column(columnDefinition = "TEXT")
-    private String body;
     private String groupName;
-    private String attachmentName;
+    private String date;
+    private String time;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER,mappedBy = "previousMail",cascade = CascadeType.ALL)
+    private Set<Attachments> attachment=new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)@JsonIgnore
     @JoinColumn(name = "user_id",referencedColumnName = "id")
     private AppUser appUser;
 }

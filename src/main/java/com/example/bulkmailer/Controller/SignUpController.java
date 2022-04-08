@@ -3,8 +3,10 @@ package com.example.bulkmailer.Controller;
 import com.example.bulkmailer.Entities.AppUser;
 import com.example.bulkmailer.Entities.DTOs.GoogleRequest;
 import com.example.bulkmailer.Entities.DTOs.OTP;
+import com.example.bulkmailer.Entities.DTOs.PasswordChangeDTO;
 import com.example.bulkmailer.Entities.DTOs.PasswordDto;
 import com.example.bulkmailer.Entities.RegistrationRequest;
+import com.example.bulkmailer.Entities.Role;
 import com.example.bulkmailer.JWT.JwtUtil;
 import com.example.bulkmailer.Repository.GroupRepo;
 import com.example.bulkmailer.Repository.UserRepository;
@@ -26,9 +28,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController @AllArgsConstructor
 @RequestMapping("/signup")@Slf4j
@@ -137,12 +141,12 @@ public class SignUpController {
         }
     }
     @PostMapping("/google")
-    public ResponseEntity<?> googleSignIn(@RequestBody GoogleRequest token) throws GeneralSecurityException, IOException {
+    public ResponseEntity<?> googleSignIn(@RequestBody HashMap<String,String> token) throws GeneralSecurityException, IOException {
         String CLIENT_ID="852195797172-d0qq3vi9erb2ep1ill5eilc65mdvmah9.apps.googleusercontent.com";
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(CLIENT_ID))
                 .build();
-        String idTokenString= token.getToken();
+        String idTokenString= token.get("token");
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             Payload payload = idToken.getPayload();
@@ -153,10 +157,24 @@ public class SignUpController {
             String name = (String) payload.get("name");
             if(emailVerified)
             {
-                userRepository.save(new AppUser(name,email,null,0));
-                final UserDetails userDetails = userDetailsService
-                        .loadUserByUsername(email);
-
+                final UserDetails userDetails;
+                Optional<AppUser> appUser=userRepository.findByUsername(email);
+                if(appUser.isPresent()&&appUser.get().getRole().equals(Role.NORMAL_USER))
+                {
+                    return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("User already present");
+                }
+                else if(appUser.isPresent()&&appUser.get().getRole().equals(Role.GOOGLE_USER))
+                {
+                userDetails = userDetailsService.loadUserByUsername(email);
+                }
+                else
+                {
+                    AppUser appUser1 = new AppUser(name,email,registerService.generatePassayPassword(),0,Role.GOOGLE_USER);
+                    appUser1.setEnabled(true);
+                    appUser1.setLocked(false);
+                 userRepository.save(appUser1);
+                 userDetails = userDetailsService.loadUserByUsername(email);
+                }
                 final String access_token= jwtUtil.generateAccessToken(userDetails);
                 final String refresh_token= jwtUtil.generateRefreshToken(userDetails);
                 Map<String,String> responseToken = new HashMap<>();
@@ -173,11 +191,27 @@ public class SignUpController {
         }
 
     }
-    @GetMapping("/")
-    public String hello()
+    @PostMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, Principal principal)
     {
-        return "Hello APi";
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(registerService.changePassword(passwordChangeDTO,principal));
+        }
+        catch(UsernameNotFoundException e1)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e1.getLocalizedMessage());
+        }
+        catch (IllegalArgumentException e2)
+        {
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e2.getLocalizedMessage());
+        }
+        catch (IllegalStateException e3)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e3.getLocalizedMessage());
+        }
+        catch (RuntimeException e4)
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e4.getLocalizedMessage());
+        }
     }
-
-
 }
