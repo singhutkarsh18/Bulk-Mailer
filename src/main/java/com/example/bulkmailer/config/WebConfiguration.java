@@ -23,6 +23,6 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .allowedMethods("POST", "GET")
                 //.allowedHeaders("header1", "header2", "header3")
                 //.exposedHeaders("header1", "header2")
-                .allowCredentials(true).maxAge(3600);
+                .allowCredentials(false).maxAge(3600);
     }
 }
