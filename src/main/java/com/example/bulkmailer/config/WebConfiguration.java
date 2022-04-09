@@ -18,7 +18,8 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(final CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
+                .allowedOrigins("http://localhost:3000")
+                .allowedOrigins("https://chitthi.netlify.app")
                 .allowedMethods("POST", "GET")
                 //.allowedHeaders("header1", "header2", "header3")
                 //.exposedHeaders("header1", "header2")
