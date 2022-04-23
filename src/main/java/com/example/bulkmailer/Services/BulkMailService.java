@@ -43,6 +43,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -147,10 +149,10 @@ public class BulkMailService {
     {
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
-        LocalDateTime localDateTime =LocalDateTime.now();
+        ZonedDateTime zonedDateTime =ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
         DateTimeFormatter date = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
-        PreviousMail previousMail=previousMailRepo.save(new PreviousMail(null,subject,groupName, localDateTime.format(date), localDateTime.format(time),null,userRepository.findByUsername(username).get()));
+        PreviousMail previousMail=previousMailRepo.save(new PreviousMail(null,subject,groupName, zonedDateTime.format(date), zonedDateTime.format(time),null,userRepository.findByUsername(username).get()));
         List<Attachments> attachments =new ArrayList<>();
         for(String attachment:attachmentName)
         {
