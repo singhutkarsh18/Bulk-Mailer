@@ -7,8 +7,11 @@ import com.example.bulkmailer.Entities.DTOs.TemplateModel;
 import com.example.bulkmailer.Entities.Emails;
 import com.example.bulkmailer.Entities.Groups;
 import com.example.bulkmailer.Entities.PreviousMail;
-import com.example.bulkmailer.Repository.*;
-import com.itextpdf.text.BadElementException;
+import com.example.bulkmailer.Repository.AttachmentRepo;
+import com.example.bulkmailer.Repository.GroupRepo;
+import com.example.bulkmailer.Repository.PreviousMailRepo;
+import com.example.bulkmailer.Repository.TemplateRepo;
+import com.example.bulkmailer.Repository.UserRepository;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.PageSize;
@@ -36,17 +39,27 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Service @Slf4j @AllArgsConstructor@Transactional
 public class BulkMailService {
@@ -138,7 +151,6 @@ public class BulkMailService {
                 mimeMessageHelper.addAttachment(emailName,new File(directory+templateModel.getAttachment()));
             }
         }
-
         mailSender.send(message);
         addToHistory(message.getSubject(),groups.getName(),new HashSet<>(templateModel.getAttachment()));
         long end=System.currentTimeMillis();

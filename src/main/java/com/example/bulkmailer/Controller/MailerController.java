@@ -157,8 +157,11 @@ public class MailerController {
     public ResponseEntity<?> sendWithName(@RequestBody NameReq nameReq)
     {
         try{
-            bulkMailService.sendBulkWithName(nameReq);
-            return ResponseEntity.status(HttpStatus.OK).body("Mail sent");
+            String r= bulkMailService.sendBulkWithName(nameReq);
+            if(r==null)
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("error while sending message");
+            else
+                return ResponseEntity.status(HttpStatus.OK).body("Mail sent");
         }
         catch (NoSuchElementException e1)
         {
